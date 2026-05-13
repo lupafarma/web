@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lupa — Auditor de facturas farmacéuticas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #F5F1E8;
+    --bg-card: #FFFEF8;
+    --ink: #1A1F2C;
+    --ink-soft: #4A5160;
+    --ink-faint: #8A8F9A;
+    --rule: #D8D2C2;
+    --rule-soft: #E8E3D4;
+    --accent-red: #A03B1F;
+    --accent-amber: #B07410;
+    --accent-green: #2F6048;
+    --accent-blue: #2A4B6F;
+    --bg-warn: #F8E8E0;
+    --bg-info: #F0E8D8;
+    --bg-good: #E2EDE5;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "IBM Plex Sans", -apple-system, sans-serif;
+    font-size: 15px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 32px 24px 80px;
+  }
+
+  /* Header */
+  header { 
+    border-bottom: 1px solid var(--rule);
+    padding-bottom: 24px;
+    margin-bottom: 32px;
+  }
+  .brand {
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .brand h1 {
+    font-family: "Fraunces", serif;
+    font-weight: 600;
+    font-size: 48px;
+    margin: 0;
+    letter-spacing: -0.02em;
+    font-style: italic;
+  }
+  .brand .tagline {
+    font-family: "Fraunces", serif;
+    font-size: 18px;
+    color: var(--ink-soft);
+    margin: 0;
+  }
+  .privacy {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 16px;
+    padding: 6px 12px;
+    background: var(--bg-good);
+    border: 1px solid var(--accent-green);
+    border-radius: 2px;
+    font-size: 13px;
+    color: var(--accent-green);
+    font-weight: 500;
+  }
+  .privacy .dot {
+    width: 6px;
+    height: 6px;
+    background: var(--accent-green);
+    border-radius: 50%;
+    display: inline-block;
+  }
+  .intro {
+    margin-top: 24px;
+    max-width: 720px;
+    color: var(--ink-soft);
+    font-size: 15px;
+  }
+  .intro strong { color: var(--ink); }
+
+  /* Layout */
+  .grid {
+    display: grid;
+    grid-template-columns: 1.1fr 0.9fr;
+    gap: 40px;
+  }
+  @media (max-width: 900px) {
+    .grid { grid-template-columns: 1fr; gap: 32px; }
+    .brand h1 { font-size: 40px; }
+  }
+
+  /* Panel headers */
+  .panel-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    border-bottom: 2px solid var(--ink);
+    padding-bottom: 8px;
+    margin-bottom: 16px;
+  }
+  .panel-head h2 {
+    font-family: "Fraunces", serif;
+    font-size: 22px;
+    font-weight: 500;
+    margin: 0;
+    letter-spacing: -0.01em;
+  }
+  .panel-head .meta {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 12px;
+    color: var(--ink-faint);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  /* Invoice */
+  .invoice-meta {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+    padding: 16px;
+    background: var(--bg-card);
+    border: 1px solid var(--rule);
+  }
+  .meta-field label {
+    display: block;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--ink-faint);
+    margin-bottom: 4px;
+  }
+  .meta-field .value {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 14px;
+    color: var(--ink);
+  }
+
+  /* Line items */
+  .invoice-table {
+    background: var(--bg-card);
+    border: 1px solid var(--rule);
+    overflow: hidden;
+  }
+  .invoice-row {
+    display: grid;
+    grid-template-columns: 100px 1fr 60px 90px 90px 32px;
+    align-items: center;
+    border-bottom: 1px solid var(--rule-soft);
+    transition: background 0.15s;
+  }
+  .invoice-row:last-child { border-bottom: none; }
+  .invoice-row.header {
+    background: var(--bg);
+    border-bottom: 1px solid var(--rule);
+  }
+  .invoice-row.header > div {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--ink-faint);
+    padding: 10px 8px;
+    font-weight: 500;
+  }
+  .invoice-row > div {
+    padding: 10px 8px;
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 13px;
+  }
+  .invoice-row .name { 
+    font-family: "IBM Plex Sans", sans-serif;
+    font-size: 13px;
+    color: var(--ink);
+    line-height: 1.35;
+  }
+  .invoice-row .name .sub {
+    font-size: 11px;
+    color: var(--ink-faint);
+    margin-top: 2px;
+  }
+  .invoice-row input {
+    width: 100%;
+    border: 1px solid transparent;
+    background: transparent;
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 13px;
+    color: var(--ink);
+    padding: 4px 6px;
+    border-radius: 2px;
+    text-align: right;
+  }
+  .invoice-row input.cn {
+    text-align: left;
+    font-weight: 500;
+  }
+  .invoice-row input:focus {
+    outline: none;
+    background: #FFF;
+    border-color: var(--accent-blue);
+  }
+  .invoice-row input:hover {
+    background: rgba(255,255,255,0.5);
+    border-color: var(--rule);
+  }
+  .invoice-row.flagged {
+    background: var(--bg-warn);
+  }
+  .invoice-row.flagged.subtle {
+    background: var(--bg-info);
+  }
+  .row-actions {
+    color: var(--ink-faint);
+    cursor: pointer;
+    text-align: center;
+    user-select: none;
+    font-size: 16px;
+  }
+  .row-actions:hover { color: var(--accent-red); }
+
+  .invoice-totals {
+    background: var(--bg);
+    border: 1px solid var(--rule);
+    border-top: none;
+    padding: 12px 16px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 32px;
+    align-items: baseline;
+    font-family: "IBM Plex Mono", monospace;
+  }
+  .invoice-totals .label {
+    color: var(--ink-faint);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .invoice-totals .value {
+    font-size: 16px;
+    font-weight: 500;
+  }
+
+  .add-row-btn {
+    margin-top: 12px;
+    background: transparent;
+    border: 1px dashed var(--rule);
+    color: var(--ink-soft);
+    padding: 12px;
+    width: 100%;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 13px;
+    transition: all 0.15s;
+  }
+  .add-row-btn:hover {
+    border-color: var(--ink-soft);
+    color: var(--ink);
+  }
+
+  /* Findings */
+  .summary-bar {
+    background: var(--bg-card);
+    border: 1px solid var(--rule);
+    padding: 16px;
+    margin-bottom: 20px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  .summary-bar .stat .label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--ink-faint);
+    margin-bottom: 4px;
+  }
+  .summary-bar .stat .number {
+    font-family: "Fraunces", serif;
+    font-size: 32px;
+    line-height: 1;
+    color: var(--ink);
+    font-weight: 500;
+  }
+  .summary-bar .stat.warning .number { color: var(--accent-red); }
+
+  .findings-list { display: flex; flex-direction: column; gap: 12px; }
+  .finding {
+    background: var(--bg-card);
+    border-left: 3px solid var(--ink);
+    padding: 14px 16px;
+  }
+  .finding.high { border-left-color: var(--accent-red); background: var(--bg-warn); }
+  .finding.medium { border-left-color: var(--accent-amber); background: var(--bg-info); }
+  .finding.low { border-left-color: var(--accent-blue); }
+  .finding.info { border-left-color: var(--ink-faint); }
+
+  .finding-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 6px;
+  }
+  .finding-title {
+    font-family: "Fraunces", serif;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--ink);
+  }
+  .finding-impact {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--accent-red);
+  }
+  .finding-impact.zero { color: var(--ink-faint); }
+  .finding-body {
+    font-size: 14px;
+    color: var(--ink-soft);
+    line-height: 1.5;
+  }
+  .finding-body strong { color: var(--ink); }
+  .finding-cite {
+    margin-top: 8px;
+    font-size: 12px;
+    color: var(--ink-faint);
+    font-style: italic;
+  }
+  .finding-line-ref {
+    display: inline-block;
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 11px;
+    background: rgba(0,0,0,0.05);
+    padding: 1px 6px;
+    border-radius: 2px;
+    color: var(--ink-soft);
+    margin-right: 6px;
+  }
+  .no-findings {
+    background: var(--bg-good);
+    border: 1px solid var(--accent-green);
+    padding: 24px;
+    text-align: center;
+    color: var(--accent-green);
+    font-family: "Fraunces", serif;
+    font-size: 18px;
+    font-style: italic;
+  }
+
+  /* Footer */
+  footer {
+    margin-top: 64px;
+    padding-top: 24px;
+    border-top: 1px solid var(--rule);
+    font-size: 12px;
+    color: var(--ink-faint);
+    font-family: "IBM Plex Mono", monospace;
+  }
+  footer .sources {
+    margin-top: 8px;
+    line-height: 1.7;
+  }
+  footer a {
+    color: var(--ink-soft);
+    text-decoration: underline;
+    text-decoration-color: var(--rule);
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+<header>
+  <div class="brand">
+    <h1>Lupa</h1>
+    <p class="tagline">Auditor de facturas farmacéuticas — España</p>
+  </div>
+  <div class="privacy">
+    <span class="dot"></span>
+    <span>Procesamiento 100% local en tu navegador. Cero conexiones de red tras la carga.</span>
+  </div>
+  <p class="intro">
+    Lupa compara cada línea de tu factura contra el <strong>Nomenclátor de Facturación</strong>, el 
+    <strong>PVL Industrial de Referencia</strong> publicado en BOE, y los márgenes regulados por 
+    RD 823/2008. Detecta sobrecargas ilegales, errores aritméticos, y alternativas genéricas más económicas. 
+    Esta es una demostración con datos reales. Modifica cualquier campo para ver el análisis actualizarse.
+  </p>
+</header>
+
+<div class="grid">
+
+  <!-- INVOICE PANEL -->
+  <section>
+    <div class="panel-head">
+      <h2>Factura</h2>
+      <span class="meta">DEMO · Cofares simulado</span>
+    </div>
+
+    <div class="invoice-meta">
+      <div class="meta-field">
+        <label>Distribuidor</label>
+        <div class="value">Cofares (simulado)</div>
+      </div>
+      <div class="meta-field">
+        <label>Nº factura</label>
+        <div class="value">F2026-001234</div>
+      </div>
+      <div class="meta-field">
+        <label>Fecha</label>
+        <div class="value">15/04/2026</div>
+      </div>
+      <div class="meta-field">
+        <label>NIF farmacia</label>
+        <div class="value">B12345678</div>
+      </div>
+    </div>
+
+    <div class="invoice-table" id="invoice-table">
+      <div class="invoice-row header">
+        <div>CN</div>
+        <div>Producto</div>
+        <div style="text-align:right">Cant.</div>
+        <div style="text-align:right">P. unit.</div>
+        <div style="text-align:right">Total</div>
+        <div></div>
+      </div>
+      <!-- Rows injected by JS -->
+    </div>
+
+    <div class="invoice-totals">
+      <div>
+        <span class="label">Subtotal:</span>
+        <span class="value" id="subtotal">€0,00</span>
+      </div>
+    </div>
+
+    <button class="add-row-btn" onclick="addRow()">+ Añadir línea</button>
+  </section>
+
+  <!-- FINDINGS PANEL -->
+  <section>
+    <div class="panel-head">
+      <h2>Hallazgos</h2>
+      <span class="meta" id="findings-count">0 detectados</span>
+    </div>
+
+    <div class="summary-bar">
+      <div class="stat">
+        <div class="label">Líneas analizadas</div>
+        <div class="number" id="lines-count">0</div>
+      </div>
+      <div class="stat warning">
+        <div class="label">Impacto potencial</div>
+        <div class="number" id="total-impact">€0,00</div>
+      </div>
+    </div>
+
+    <div class="findings-list" id="findings-list">
+      <!-- Findings injected by JS -->
+    </div>
+  </section>
+
+</div>
+
+<footer>
+  <div>
+    <strong>Fuentes consultadas:</strong>
+  </div>
+  <div class="sources">
+    · Nomenclátor de Facturación, Ministerio de Sanidad — datos de mayo 2026 (PVP+IVA, precio de referencia, agrupaciones homogéneas)<br>
+    · <a href="https://www.boe.es/diario_boe/txt.php?id=BOE-A-2025-20356">BOE Orden SND/1118/2025</a> — Actualización del sistema de precios de referencia de medicamentos (PVL Referencia)<br>
+    · <a href="https://www.boe.es/buscar/act.php?id=BOE-A-2014-3189">Real Decreto 177/2014</a> — Sistema de precios de referencia (Art. 2.2 carácter de PVL máximo, Disposición adicional octava)<br>
+    · <a href="https://www.boe.es/buscar/act.php?id=BOE-A-2008-9291">Real Decreto 823/2008</a> — Márgenes regulados de distribución (7,6%) y dispensación (27,9%)
+  </div>
+  <div style="margin-top: 16px; color: var(--ink-faint);">
+    Lupa es software libre, sin coste, sin registro, sin telemetría. Tus facturas nunca abandonan este navegador.<br>
+    Versión de demostración · Datos parciales (177 medicamentos de muestra) · Base completa: 20.551 presentaciones
+  </div>
+</footer>
+
+</div>
+
+<script>
+// ============================================================
+// MEDICATION DATABASE (embedded)
+// ============================================================
+const DB = {"650004":{"cn":"650004","nombre":"DEPAKINE 500 mg comprimidos gastrorresistentes, 20 comprimidos","principio_activo":"VALPROATO SODIO","laboratorio":"SANOFI AVENTIS, S.A","tipo_farmaco":"Medicamento Etica","pvp_iva":2.5,"menor_precio_agrupacion":null,"agrupacion_code":null,"agrupacion_nombre":null,"pvl_referencia_boe":1.6,"pvpiva_referencia_boe":2.5,"pvl_estimated":1.61,"conjunto_referencia_code":"F16","conjunto_principio_activo":"Ácido valproico","aportacion":"ESPECIAL"},"650005":{"cn":"650005","nombre":"DEPAKINE 500 mg comprimidos gastrorresistentes, 100 comprimidos","principio_activo":"VALPROATO SODIO","laboratorio":"SANOFI AVENTIS, S.A","tipo_farmaco":"Medicamento Etica","pvp_iva":12.05,"menor_precio_agrupacion":null,"agrupacion_code":null,"agrupacion_nombre":null,"pvl_referencia_boe":7.72,"pvpiva_referencia_boe":12.05,"pvl_estimated":7.76,"conjunto_referencia_code":"F16","conjunto_principio_activo":"Ácido valproico","aportacion":"ESPECIAL"},"650006":{"cn":"650006","nombre":"DEPAKINE 200 mg comprimidos gastrorresistentes, 40 comprimidos","principio_activo":"VALPROATO SODIO","laboratorio":"SANOFI AVENTIS, S.A","tipo_farmaco":"Medicamento Etica","pvp_iva":2.5,"menor_precio_agrupacion":null,"agrupacion_code":null,"agrupacion_nombre":null,"pvl_referencia_boe":1.6,"pvpiva_referencia_boe":2.5,"pvl_estimated":1.61,"conjunto_referencia_code":"F16","conjunto_principio_activo":"Ácido valproico","aportacion":"ESPECIAL"},"650007":{"cn":"650007","nombre":"DEPAKINE 200 mg comprimidos gastrorresistentes, 100 comprimidos","principio_activo":"VALPROATO SODIO","laboratorio":"SANOFI AVENTIS, S.A","tipo_farmaco":"Medicamento Etica","pvp_iva":4.82,"menor_precio_agrupacion":null,"agrupacion_code":null,"agrupacion_nombre":null,"pvl_referencia_boe":3.09,"pvpiva_referencia_boe":4.82,"pvl_estimated":3.11,"conjunto_referencia_code":"F16","conjunto_principio_activo":"Ácido valproico","aportacion":"ESPECIAL"},"650228":{"cn":"650228","nombre":"ACICLOVIR MABO 800MG 35 COMPRIMIDOS EFG","principio_activo":"ACICLOVIR","laboratorio":"MABO-FARMA, S.A.","tipo_farmaco":"Medicamento Generico","pvp_iva":52.95,"menor_precio_agrupacion":52.95,"agrupacion_code":"30","agrupacion_nombre":"ACICLOVIR 800 MG 35 COMPRIMIDOS","pvl_referencia_boe":33.92,"pvpiva_referencia_boe":52.95,"pvl_estimated":34.12,"conjunto_referencia_code":"F4","conjunto_principio_activo":"Aciclovir","aportacion":"NORMAL"},"650579":{"cn":"650579","nombre":"RISEDRONATO SEMANAL SANDOZ 35 mg comprimidos recubiertos con pelicula , 4 compri","principio_activo":"RISEDRONATO SODIO","laboratorio":"SANDOZ FARMACEUTICA, S.A","tipo_farmaco":"Medicamento Generico","pvp_iva":19.84,"menor_precio_agrupacion":19.84,"agrupacion_code":"125","agrupacion_nombre":"ACIDO RISEDRONICO 35 MG 4 COMPRIMIDOS","pvl_referencia_boe":12.71,"pvpiva_referencia_boe":19.84,"pvl_estimated":12.78,"conjunto_referencia_code":"F13","conjunto_principio_activo":"Ácido risedrónico","aportacion":"NORMAL"},"650789":{"cn":"650789","nombre":"AMLODIPINO SANDOZ 10 mg comprimidos , 30 comprimidos","principio_activo":"AMLODIPINO BESILATO","laboratorio":"SANDOZ FARMACEUTICA, S.A","tipo_farmaco":"Medicamento Generico","pvp_iva":2.5,"menor_precio_agrupacion":2.5,"agrupacion_code":"3189","agrupacion_nombre":"AMLODIPINO 10 MG 30 COMPRIMIDOS","pvl_referencia_boe":1.6,"pvpiva_referencia_boe":2.5,"pvl_estimated":1.61,"conjunto_referencia_code":"F28","conjunto_principio_activo":"Amlodipino","aportacion":"ESPECIAL"},"651068":{"cn":"651068","nombre":"ATORVASTATINA CINFA 10 mg comprimidos recubiertos con pelicula , 28 comprimidos","principio_activo":"ATORVASTATINA CALCICA TRIHIDRATO","laboratorio":"CINFA S.A.","tipo_farmaco":"Medicamento Generico","pvp_iva":3.61,"menor_precio_agrupacion":3.61,"agrupacion_code":"304","agrupacion_nombre":"ATORVASTATINA 10 MG 28 COMPRIMIDOS","pvl_referencia_boe":2.31,"pvpiva_referencia_boe":3.61,"pvl_estimated":2.33,"conjunto_referencia_code":"F46","conjunto_principio_activo":"Atorvastatina","aportacion":"NORMAL"},"651076":{"cn":"651076","nombre":"ATORVASTATINA CINFA 20 mg comprimidos recubiertos con pelicula , 28 comprimidos","principio_activo":"ATORVASTATINA CALCICA TRIHIDRATO","laboratorio":"CINFA S.A.","tipo_farmaco":"Medicamento Generico","pvp_iva":7.2,"menor_precio_agrupacion":7.2,"agrupacion_code":"305","agrupacion_nombre":"ATORVASTATINA 20 MG 28 COMPRIMIDOS","pvl_referencia_boe":4.61,"pvpiva_referencia_boe":7.2,"pvl_estimated":4.64,"conjunto_referencia_code":"F46","conjunto_principio_activo":"Atorvastatina","aportacion":"NORMAL"},"651084":{"cn":"651084","nombre":"ATORVASTATINA CINFA 40 mg comprimidos recubiertos con pelicula , 28 comprimidos","principio_activo":"ATORVASTATINA CALCICA TRIHIDRATO","laboratorio":"CINFA S.A.","tipo_farmaco":"Medicamento Generico","pvp_iva":14.39,"menor_precio_agrupacion":14.39,"agrupacion_code":"306","agrupacion_nombre":"ATORVASTATINA 40 MG 28 COMPRIMIDOS","pvl_referencia_boe":9.22,"pvpiva_referencia_boe":14.39,"pvl_estimated":9.27,"conjunto_referencia_code":"F46","conjunto_principio_activo":"Atorvastatina","aportacion":"NORMAL"},"651608":{"cn":"651608","nombre":"ABILIFY 10MG 28 COMPRIMIDOS BUCODISPERSABLES","principio_activo":"ARIPIPRAZOL","laboratorio":"OTSUKA PHARMACEUTICAL, S.A.","tipo_farmaco":"Medicamento Etica","pvp_iva":47.18,"menor_precio_agrupacion":47.18,"agrupacion_code":"277","agrupacion_nombre":"ARIPIPRAZOL 10 MG 28 COMPRIMIDOS BUCODISPERSABLES/LIOTABS","pvl_referencia_boe":30.22,"pvpiva_referencia_boe":47.18,"pvl_estimated":30.4,"conjunto_referencia_code":"F41","conjunto_principio_activo":"Aripiprazol","aportacion":"ESPECIAL"},"651609":{"cn":"651609","nombre":"ABILIFY 15MG 28 COMPRIMIDOS BUCODISPERSABLES","principio_activo":"ARIPIPRAZOL","laboratorio":"OTSUKA PHARMACEUTICAL, S.A.","tipo_farmaco":"Medicamento Etica","pvp_iva":70.76,"menor_precio_agrupacion":70.76,"agrupacion_code":"279","agrupacion_nombre":"ARIPIPRAZOL 15 MG 28 COMPRIMIDOS BUCODISPERSABLES/LIOTABS","pvl_referencia_boe":45.33,"pvpiva_referencia_boe":70.76,"pvl_estimated":45.59,"conjunto_referencia_code":"F41","conjunto_principio_activo":"Aripiprazol","aportacion":"ESPECIAL"},"651616":{"cn":"651616","nombre":"ALPRAZOLAM ALTER 0,50 MG COMPRIMIDOS EFG , 30 comprimidos","principio_activo":"ALPRAZOLAM","laboratorio":"ALTER S.A.","tipo_farmaco":"Medicamento Generico","pvp_iva":2.11,"menor_precio_agrupacion":2.11,"agrupacion_code":"172","agrupacion_nombre":"ALPRAZOLAM 0,5 MG 30 COMPRIMIDOS","pvl_referencia_boe":1.35,"pvpiva_referencia_boe":2.11,"pvl_estimated":1.36,"conjunto_referencia_code":"F24","conjunto_principio_activo":"Alprazolam","aportacion":"NORMAL"},"651617":{"cn":"651617","nombre":"ALPRAZOLAM ALTER 0,25 MG COMPRIMIDOS EFG , 30 comprimidos","principio_activo":"ALPRAZOLAM","laboratorio":"ALTER S.A.","tipo_farmaco":"Medicamento Generico","pvp_iva":1.64,"menor_precio_agrupacion":1.64,"agrupacion_code":"170","agrupacion_nombre":"ALPRAZOLAM 0,25 MG 30 COMPRIMIDOS","pvl_referencia_boe":1.05,"pvpiva_referencia_boe":1.64,"pvl_estimated":1.06,"conjunto_referencia_code":"F24","conjunto_principio_activo":"Alprazolam","aportacion":"NORMAL"},"651618":{"cn":"651618","nombre":"ALPRAZOLAM ALTER 1 MG COMPRIMIDOS EFG , 30 comprimidos","principio_activo":"ALPRAZOLAM","laboratorio":"ALTER S.A.","tipo_farmaco":"Medicamento Generico","pvp_iva":2.5,"menor_precio_agrupacion":2.5,"agrupacion_code":"175","agrupacion_nombre":"ALPRAZOLAM 1 MG 30 COMPRIMIDOS","pvl_referencia_boe":1.6,"pvpiva_referencia_boe":2.5,"pvl_estimated":1.61,"conjunto_referencia_code":"F24","conjunto_principio_activo":"Alprazolam","aportacion":"NORMAL"},"651619":{"cn":"651619","nombre":"ALPRAZOLAM ALTER 2  MG COMPRIMIDOS EFG , 30 comprimidos","principio_activo":"ALPRAZOLAM","laboratorio":"ALTER S.A.","tipo_farmaco":"Medicamento Generico","pvp_iva":4.84,"menor_precio_agrupacion":4.84,"agrupacion_code":"177","agrupacion_nombre":"ALPRAZOLAM 2 MG 30 COMPRIMIDOS","pvl_referencia_boe":3.1,"pvpiva_referencia_boe":4.84,"pvl_estimated":3.12,"conjunto_referencia_code":"F24","conjunto_principio_activo":"Alprazolam","aportacion":"NORMAL"},"652738":{"cn":"652738","nombre":"ABILIFY 1MG/ML 150ML SOLUCION ORAL","principio_activo":"ARIPIPRAZOL","laboratorio":"OTSUKA PHARMACEUTICAL, S.A.","tipo_farmaco":"Medicamento Etica","pvp_iva":25.27,"menor_precio_agrupacion":25.27,"agrupacion_code":"3567","agrupacion_nombre":"ARIPIPRAZOL 1MG/ML 150 ML SOLUCION/SUSPENSION ORAL","pvl_referencia_boe":16.19,"pvpiva_referencia_boe":25.27,"pvl_estimated":16.28,"conjunto_referencia_code":"F41","conjunto_principio_activo":"Aripiprazol","aportacion":"ESPECIAL"},"653213":{"cn":"653213","nombre":"ARACENAC 100 mg comprimidos recubiertos con pelicula , 40 comprimidos","principio_activo":"ACECLOFENACO","laboratorio":"ARAFARMA GROUP, S.A","tipo_farmaco":"Medicamento Generico","pvp_iva":5.65,"menor_precio_agrupacion":5.65,"agrupacion_code":"8","agrupacion_nombre":"ACECLOFENACO 100 MG 40 COMPRIMIDOS","pvl_referencia_boe":3.62,"pvpiva_referencia_boe":5.65,"pvl_estimated":3.64,"conjunto_referencia_code":"F3","conjunto_principio_activo":"Aceclofenaco","aportacion":"NORMAL"},"653221":{"cn":"653221","nombre":"ARACENAC 100 mg comprimidos recubiertos con pelicula , 20 comprimidos","principio_activo":"ACECLOFENACO","laboratorio":"ARAFARMA GROUP, S.A","tipo_farmaco":"Medicamento Generico","pvp_iva":2.83,"menor_precio_agrupacion":2.83,"agrupacion_code":"6","agrupacion_nombre":"ACECLOFENACO 100 MG 20 COMPRIMIDOS","pvl_referencia_boe":1.81,"pvpiva_referencia_boe":2.83,"pvl_estimated":1.82,"conjunto_referencia_code":"F3","conjunto_principio_activo":"Aceclofenaco","aportacion":"NORMAL"},"653346":{"cn":"653346","nombre":"BONVIVA 150MG 1 COMPR RECUB PELIC","principio_activo":"IBANDRONICO ACIDO","laboratorio":"RUBIO S.A.","tipo_farmaco":"Medicamento Etica","pvp_iva":13.0,"menor_precio_agrupacion":13.0,"agrupacion_code":"105","agrupacion_nombre":"ACIDO IBANDRONICO 150 MG 1 COMPRIMIDOS","pvl_referencia_boe":8.33,"pvpiva_referencia_boe":13.0,"pvl_estimated":8.38,"conjunto_referencia_code":"F11","conjunto_principio_activo":"Ácido ibandrónico","aportacion":"NORMAL"},"656290":{"cn":"656290","nombre":"ACIDO ALENDRONICO SEMANAL MABO 70 mg COMPRIMIDOS, 4 COMPRIMIDOS","principio_activo":"ALENDRONICO ACIDO","laboratorio":"MABO-FARMA, S.A.","tipo_farmaco":"Medicamento Generico","pvp_iva":9.99,"menor_precio_agrupacion":9.99,"agrupacion_code":"3179","agrupacion_nombre":"ACIDO ALENDRONICO 70 MG 4 COMPRIMIDOS","pvl_referencia_boe":6.4,"pvpiva_referencia_boe":9.99,"pvl_estimated":6.44,"conjunto_referencia_code":"F7","conjunto_principio_activo":"Ácido alendrónico","aportacion":"NORMAL"},"658153":{"cn":"658153","nombre":"ALOPURINOL PENSA 100 mg comprimidos, 100 comprimidos","principio_activo":"ALOPURINOL","laboratorio":"TOWA PHARMACEUTICAL, S.A.","tipo_farmaco":"Medicamento Generico","pvp_iva":3.12,"menor_precio_agrupacion":3.12,"agrupacion_code":"167","agrupacion_nombre":"ALOPURINOL 100 MG 100 COMPRIMIDOS","pvl_referencia_boe":2.0,"pvpiva_referencia_boe":3.12,"pvl_estimated":2.01,"conjunto_referencia_code":"F23","conjunto_principio_activo":"Alopurinol","aportacion":"ESPECIAL"},"658161":{"cn":"658161","nombre":"ALOPURINOL PENSA 300 mg comprimidos, 30 comprimidos","principio_activo":"ALOPURINOL","laboratorio":"TOWA PHARMACEUTICAL, S.A.","tipo_farmaco":"Medicamento Generico","pvp_iva":2.81,"menor_precio_agrupacion":2.81,"agrupacion_code":"169","agrupacion_nombre":"ALOPURINOL 300 MG 30 COMPRIMIDOS","pvl_referencia_boe":1.8,"pvpiva_referencia_boe":2.81,"pvl_estimated":1.81,"conjunto_referencia_code":"F23","conjunto_principio_activo":"Alopurinol","aportacion":"ESPECIAL"},"658218":{"cn":"658218","nombre":"AMLODIPINO NORMON 5 mg Comprimidos, 30 comprimidos","principio_activo":"AMLODIPINO BESILATO","laboratorio":"NORMON S.A.","tipo_farmaco":"Medicamento Generico","pvp_iva":1.25,"menor_precio_agrupacion":1.25,"agrupacion_code":"3190","agrupacion_nombre":"AMLODIPINO 5 MG 30 COMPRIMIDOS","pvl_referencia_boe":0.8,"pvpiva_referencia_boe":1.25,"pvl_estimated":0.81,"conjunto_referencia_code":"F28","conjunto_principio_activo":"Amlodipino","aportacion":"ESPECIAL"},"658219":{"cn":"658219","nombre":"AMLODIPINO NORMON 10 mg Comprimidos, 30 comprimidos","principio_activo":"AMLODIPINO BESILATO","laboratorio":"NORMON S.A.","tipo_farmaco":"Medicamento Generico","pvp_iva":2.5,"menor_precio_agrupacion":2.5,"agrupacion_code":"3189","agrupacion_nombre":"AMLODIPINO 10 MG 30 COMPRIMIDOS","pvl_referencia_boe":1.6,"pvpiva_referencia_boe":2.5,"pvl_estimated":1.61,"conjunto_referencia_code":"F28","conjunto_principio_activo":"Amlodipino","aportacion":"ESPECIAL"},"660392":{"cn":"660392","nombre":"ATORVASTATINA CINFA 80 mg comprimidos recubiertos con pelicula , 28 comprimidos","principio_activo":"ATORVASTATINA","laboratorio":"CINFA S.A.","tipo_farmaco":"Medicamento Generico","pvp_iva":28.79,"menor_precio_agrupacion":28.79,"agrupacion_code":"307","agrupacion_nombre":"ATORVASTATINA 80 MG 28 COMPRIMIDOS","pvl_referencia_boe":18.44,"pvpiva_referencia_boe":28.79,"pvl_estimated":18.55,"conjunto_referencia_code":"F46","conjunto_principio_activo":"Atorvastatina","aportacion":"NORMAL"},"660730":{"cn":"660730","nombre":"ACTONEL 75 mg comprimidos recubiertos con pelicula , 2 comprimidos","principio_activo":"RISEDRONATO SODIO","laboratorio":"THERAMEX  IRELAND LIMITED","tipo_farmaco":"Medicamento Etica","pvp_iva":21.26,"menor_precio_agrupacion":21.26,"agrupacion_code":"3181","agrupacion_nombre":"ACIDO RISEDRONICO  75 MG 2 COMPRIMIDOS","pvl_referencia_boe":13.62,"pvpiva_referencia_boe":21.26,"pvl_estimated":13.7,"conjunto_referencia_code":"F13","conjunto_principio_activo":"Ácido risedrónico","aportacion":"NORMAL"},"661007":{"cn":"661007","nombre":"ACIDO ALENDRONICO SEMANAL NORMON 70 mg Comprimidos ,4 comprimidos","principio_activo":"ALENDRONATO SODIO TRIHIDRATO","laboratorio":"NORMON S.A.","tipo_farmaco":"Medicamento Generico","pvp_iva":9.99,"menor_precio_agrupacion":9.99,"agrupacion_code":"3179","agrupacion_nombre":"ACIDO ALENDRONICO 70 MG 4 COMPRIMIDOS","pvl_referencia_boe":6.4,"pvpiva_referencia_boe":9.99,"pvl_estimated":6.44,"conjunto_referencia_code":"F7","conjunto_principio_activo":"Ácido alendrónico","aportacion":"NORMAL"},"662020":{"cn":"662020","nombre":"VALDOXAN 25MG 28 COMPRIMIDOS RECUB CON PEL","principio_activo":"AGOMELATINA","laboratorio":"SERVIER S.L.","tipo_farmaco":"Medicamento Etica","pvp_iva":30.66,"menor_precio_agrupacion":30.66,"agrupacion_code":"3461","agrupacion_nombre":"AGOMELATINA 25MG 28 COMPRIMIDOS","pvl_referencia_boe":19.64,"pvpiva_referencia_boe":30.66,"pvl_estimated":19.75,"conjunto_referencia_code":"F19","conjunto_principio_activo":"Agomelatina","aportacion":"ESPECIAL"},"662258":{"cn":"662258","nombre":"ACARBOSA TECNIGEN 50 mg comprimidos , 100 comprimidos","principio_activo":"ACARBOSA","laboratorio":"TECNIMEDE ESPAÑA INDUSTRIA FARMACEUTICA S.A.","tipo_farmaco":"Medicamento Etica","pvp_iva":7.65,"menor_precio_agrupacion":7.65,"agrupacion_code":"4","agrupacion_nombre":"ACARBOSA 50 MG 100 COMPRIMIDOS","pvl_referencia_boe":4.9,"pvpiva_referencia_boe":7.65,"pvl_estimated":4.93,"conjunto_referencia_code":"F2","conjunto_principio_activo":"Acarbosa","aportacion":"ESPECIAL"},"662260":{"cn":"662260","nombre":"ACARBOSA TECNIGEN 100 mg comprimidos , 100 comprimidos","principio_activo":"ACARBOSA","laboratorio":"TECNIMEDE ESPAÑA INDUSTRIA FARMACEUTICA S.A.","tipo_farmaco":"Medicamento Etica","pvp_iva":15.3,"menor_precio_agrupacion":15.3,"agrupacion_code":"2","agrupacion_nombre":"ACARBOSA 100 MG 100 COMPRIMIDOS","pvl_referencia_boe":9.8,"pvpiva_referencia_boe":15.3,"pvl_estimated":9.86,"conjunto_referencia_code":"F2","conjunto_principio_activo":"Acarbosa","aportacion":"ESPECIAL"},"663979":{"cn":"663979","nombre":"ACARBOSA VIATRIS 50 MG COMPRIMIDOS. 100 comprimidos","principio_activo":"ACARBOSA","laboratorio":"VIATRIS PHARMACEUTICALS, S.L.","tipo_farmaco":"Medicamento Etica","pvp_iva":7.65,"menor_precio_agrupacion":7.65,"agrupacion_code":"4","agrupacion_nombre":"ACARBOSA 50 MG 100 COMPRIMIDOS","pvl_referencia_boe":4.9,"pvpiva_referencia_boe":7.65,"pvl_estimated":4.93,"conjunto_referencia_code":"F2","conjunto_principio_activo":"Acarbosa","aportacion":"ESPECIAL"},"663981":{"cn":"663981","nombre":"ACARBOSA VIATRIS 100 MG COMPRIMIDOS. 100 comprimidos","principio_activo":"ACARBOSA","laboratorio":"VIATRIS PHARMACEUTICALS, S.L.","tipo_farmaco":"Medicamento Etica","pvp_iva":15.3,"menor_precio_agrupacion":15.3,"agrupacion_code":"2","agrupacion_nombre":"ACARBOSA 100 MG 100 COMPRIMIDOS","pvl_referencia_boe":9.8,"pvpiva_referencia_boe":15.3,"pvl_estimated":9.86,"conjunto_referencia_code":"F2","conjunto_principio_activo":"Acarbosa","aportacion":"ESPECIAL"},"665141":{"cn":"665141","nombre":"ASTUDAL  5MG 30 COMPRIMIDOS","principio_activo":"AMLODIPINO BESILATO","laboratorio":"ALMIRALL, S.A.","tipo_farmaco":"Medicamento Etica","pvp_iva":1.25,"menor_precio_agrupacion":1.25,"agrupacion_code":"3190","agrupacion_nombre":"AMLODIPINO 5 MG 30 COMPRIMIDOS","pvl_referencia_boe":0.8,"pvpiva_referencia_boe":1.25,"pvl_estimated":0.81,"conjunto_referencia_code":"F28","conjunto_principio_activo":"Amlodipino","aportacion":"ESPECIAL"},"665933":{"cn":"665933","nombre":"ACIDO IBANDRONICO TEVA 150MG 3 COM REC PEL","principio_activo":"IBANDRONICO ACIDO","laboratorio":"TEVA PHARMA, S.L.U","tipo_farmaco":"Medicamento Generico","pvp_iva":39.0,"menor_precio_agrupacion":39.0,"agrupacion_code":"3742","agrupacion_nombre":"ACIDO IBANDRONICO 150 MG 3 COMPRIMIDOS","pvl_referencia_boe":24.98,"pvpiva_referencia_boe":39.0,"pvl_estimated":25.13,"conjunto_referencia_code":"F11","conjunto_principio_activo":"Ácido ibandrónico","aportacion":"NORMAL"},"667451":{"cn":"667451","nombre":"PREVENCOR 40MG 28 COMPRIMIDOS RECUBIERTOS","principio_activo":"ATORVASTATINA CALCICA TRIHIDRATO","laboratorio":"VIATRIS PHARMACEUTICALS, S.L.","tipo_farmaco":"Medicamento Etica","pvp_iva":14.39,"menor_precio_agrupacion":14.39,"agrupacion_code":"306","agrupacion_nombre":"ATORVASTATINA 40 MG 28 COMPRIMIDOS","pvl_referencia_boe":9.22,"pvpiva_referencia_boe":14.39,"pvl_estimated":9.27,"conjunto_referencia_code":"F46","conjunto_principio_activo":"Atorvastatina","aportacion":"NORMAL"},"667469":{"cn":"667469","nombre":"PREVENCOR 20MG 28 COMPRIMIDOS RECUBIERTOS","principio_activo":"ATORVASTATINA CALCICA TRIHIDRATO","laboratorio":"VIATRIS PHARMACEUTICALS, S.L.","tipo_farmaco":"Medicamento Etica","pvp_iva":7.2,"menor_precio_agrupacion":7.2,"agrupacion_code":"305","agrupacion_nombre":"ATORVASTATINA 20 MG 28 COMPRIMIDOS","pvl_referencia_boe":4.61,"pvpiva_referencia_boe":7.2,"pvl_estimated":4.64,"conjunto_referencia_code":"F46","conjunto_principio_activo":"Atorvastatina","aportacion":"NORMAL"},"667865":{"cn":"667865","nombre":"CARDYL 40MG 28 COMPRIMIDOS RECUBIERTOS","principio_activo":"ATORVASTATINA CALCICA TRIHIDRATO","laboratorio":"VIATRIS PHARMACEUTICALS, S.L.","tipo_farmaco":"Medicamento Etica","pvp_iva":14.39,"menor_precio_agrupacion":14.39,"agrupacion_code":"306","agrupacion_nombre":"ATORVASTATINA 40 MG 28 COMPRIMIDOS","pvl_referencia_boe":9.22,"pvpiva_referencia_boe":14.39,"pvl_estimated":9.27,"conjunto_referencia_code":"F46","conjunto_principio_activo":"Atorvastatina","aportacion":"NORMAL"},"667873":{"cn":"667873","nombre":"CARDYL 20MG 28 COMPRIMIDOS RECUBIERTOS","principio_activo":"ATORVASTATINA CALCICA TRIHIDRATO","laboratorio":"VIATRIS PHARMACEUTICALS, S.L.","tipo_farmaco":"Medicamento Etica","pvp_iva":7.2,"menor_precio_agrupacion":7.2,"agrupacion_code":"305","agrupacion_nombre":"ATORVASTATINA 20 MG 28 COMPRIMIDOS","pvl_referencia_boe":4.61,"pvpiva_referencia_boe":7.2,"pvl_estimated":4.64,"conjunto_referencia_code":"F46","conjunto_principio_activo":"Atorvastatina","aportacion":"NORMAL"},"672099":{"cn":"672099","nombre":"BIOPLAK 250 mg comprimidos , 30 comprimidos","principio_activo":"ACETILSALICILICO ACIDO","laboratorio":"LABORATORIOS ERN S.A.","tipo_farmaco":"Medicamento Etica","pvp_iva":2.5,"menor_precio_agrupacion":null,"agrupacion_code":null,"agrupacion_nombre":null,"pvl_referencia_boe":1.6,"pvpiva_referencia_boe":2.5,"pvl_estimated":1.61,"conjunto_referencia_code":"F6","conjunto_principio_activo":"Ácido acetilsalicílico","aportacion":"NORMAL"},"681372":{"cn":"681372","nombre":"ACIDO ACETILSALICILICO AUROVITAS SPAIN 100 mg COMPRIMIDOS GASTRORRESISTENTES , 3","principio_activo":"ACETILSALICILICO ACIDO","laboratorio":"AUROVITAS SPAIN, S.A.U","tipo_farmaco":"Medicamento Etica","pvp_iva":1.45,"menor_precio_agrupacion":1.45,"agrupacion_code":"36","agrupacion_nombre":"ACIDO ACETILSALICILICO 100 MG 30 COMPRIMIDOS ENTERICOS/GASTRORRESISTENTES","pvl_referencia_boe":0.93,"pvpiva_referencia_boe":1.45,"pvl_estimated":0.93,"conjunto_referencia_code":"F6","conjunto_principio_activo":"Ácido acetilsalicílico","aportacion":"NORMAL"},"686022":{"cn":"686022","nombre":"AIRTAL 100MG 40 SOBRES","principio_activo":"ACECLOFENACO","laboratorio":"ALMIRALL, S.A.","tipo_farmaco":"Medicamento Etica","pvp_iva":5.65,"menor_precio_agrupacion":null,"agrupacion_code":"9","agrupacion_nombre":"ACECLOFENACO 100 MG 40 SOBRES SOLUCION/SUSPENSION ORAL","pvl_referencia_boe":3.62,"pvpiva_referencia_boe":5.65,"pvl_estimated":3.64,"conjunto_referencia_code":"F3","conjunto_principio_activo":"Aceclofenaco","aportacion":"NORMAL"},"686030":{"cn":"686030","nombre":"AIRTAL 100MG 20 SOBRES","principio_activo":"ACECLOFENACO","laboratorio":"ALMIRALL, S.A.","tipo_farmaco":"Medicamento Etica","pvp_iva":2.83,"menor_precio_agrupacion":null,"agrupacion_code":"7","agrupacion_nombre":"ACECLOFENACO 100 MG 20 SOBRES SOLUCION/SUSPENSION ORAL","pvl_referencia_boe":1.81,"pvpiva_referencia_boe":2.83,"pvl_estimated":1.82,"conjunto_referencia_code":"F3","conjunto_principio_activo":"Aceclofenaco","aportacion":"NORMAL"},"695334":{"cn":"695334","nombre":"CLAMOXYL 500 mg CAPSULAS, 20 capsulas","principio_activo":"AMOXICILINA TRIHIDRATO","laboratorio":"GLAXOSMITHKLINE, S.A.","tipo_farmaco":"Medicamento Etica","pvp_iva":3.5,"menor_precio_agrupacion":3.5,"agrupacion_code":"3868","agrupacion_nombre":"AMOXICILINA 500 MG 20 CAPSULAS","pvl_referencia_boe":1.6,"pvpiva_referencia_boe":2.5,"pvl_estimated":2.26,"conjunto_referencia_code":"F30","conjunto_principio_activo":"Amoxicilina","aportacion":"NORMAL"},"695335":{"cn":"695335","nombre":"CLAMOXYL 500 mg CAPSULAS, 30 capsulas","principio_activo":"AMOXICILINA TRIHIDRATO","laboratorio":"GLAXOSMITHKLINE, S.A.","tipo_farmaco":"Medicamento Etica","pvp_iva":4.0,"menor_precio_agrupacion":4.0,"agrupacion_code":"3869","agrupacion_nombre":"AMOXICILINA 500 MG 30 CAPSULAS","pvl_referencia_boe":1.83,"pvpiva_referencia_boe":2.86,"pvl_estimated":2.58,"conjunto_referencia_code":"F30","conjunto_principio_activo":"Amoxicilina","aportacion":"NORMAL"},"695341":{"cn":"695341","nombre":"CLAMOXYL 1g COMPRIMIDOS, 20 comprimidos","principio_activo":"AMOXICILINA TRIHIDRATO","laboratorio":"GLAXOSMITHKLINE, S.A.","tipo_farmaco":"Medicamento Etica","pvp_iva":5.34,"menor_precio_agrupacion":5.34,"agrupacion_code":"3864","agrupacion_nombre":"AMOXICILINA 1000 MG 20 COMPRIMIDOS","pvl_referencia_boe":2.44,"pvpiva_referencia_boe":3.81,"pvl_estimated":3.44,"conjunto_referencia_code":"F30","conjunto_principio_activo":"Amoxicilina","aportacion":"NORMAL"},"695342":{"cn":"695342","nombre":"CLAMOXYL 1g COMPRIMIDOS, 30 comprimidos","principio_activo":"AMOXICILINA TRIHIDRATO","laboratorio":"GLAXOSMITHKLINE, S.A.","tipo_farmaco":"Medicamento Etica","pvp_iva":7.99,"menor_precio_agrupacion":7.99,"agrupacion_code":"3865","agrupacion_nombre":"AMOXICILINA 1000 MG 30 COMPRIMIDOS","pvl_referencia_boe":3.66,"pvpiva_referencia_boe":5.71,"pvl_estimated":5.15,"conjunto_referencia_code":"F30","conjunto_principio_activo":"Amoxicilina","aportacion":"NORMAL"},"697876":{"cn":"697876","nombre":"AUGMENTINE 875 mg/125 mg COMPRIMIDOS RECUBIERTOS CON PELICULA , 30 comprimidos","principio_activo":"CLAVULANICO ACIDO,AMOXICILINA TRIHIDRATO","laboratorio":"GLAXOSMITHKLINE, S.A.","tipo_farmaco":"Medicamento Etica","pvp_iva":14.3,"menor_precio_agrupacion":14.3,"agrupacion_code":"3888","agrupacion_nombre":"AMOXICILINA/ AC CLAVULANICO 875MG/125MG 30 COMPRIMIDOS","pvl_referencia_boe":6.54,"pvpiva_referencia_boe":10.21,"pvl_estimated":9.21,"conjunto_referencia_code":"F32","conjunto_principio_activo":"Amoxicilina/Clavulánico","aportacion":"NORMAL"},"697914":{"cn":"697914","nombre":"AUGMENTINE 875 mg/125 mg COMPRIMIDOS RECUBIERTOS CON PELICULA , 20 comprimidos","principio_activo":"AMOXICILINA TRIHIDRATO,CLAVULANICO ACIDO","laboratorio":"GLAXOSMITHKLINE, S.A.","tipo_farmaco":"Medicamento Etica","pvp_iva":9.52,"menor_precio_agrupacion":9.52,"agrupacion_code":"3887","agrupacion_nombre":"AMOXICILINA/ AC CLAVULANICO 875MG/125MG 20 COMPRIMIDOS","pvl_referencia_boe":4.36,"pvpiva_referencia_boe":6.81,"pvl_estimated":6.13,"conjunto_referencia_code":"F32","conjunto_principio_activo":"Amoxicilina/Clavulánico","aportacion":"NORMAL"},"698231":{"cn":"698231","nombre":"AUGMENTINE 875 mg/125 mg POLVO PARA SUSPENSION ORAL EN SOBRES , 20 sobres","principio_activo":"AMOXICILINA TRIHIDRATO,CLAVULANICO ACIDO","laboratorio":"GLAXOSMITHKLINE, S.A.","tipo_farmaco":"Medicamento Etica","pvp_iva":9.52,"menor_precio_agrupacion":9.52,"agrupacion_code":"3890","agrupacion_nombre":"AMOXICILINA/ AC CLAVULANICO 875MG/125MG 20 SOBRES SOLUCION/SUSPENSION ORAL","pvl_referencia_boe":4.36,"pvpiva_referencia_boe":6.81,"pvl_estimated":6.13,"conjunto_referencia_code":"F32","conjunto_principio_activo":"Amoxicilina/Clavulánico","aportacion":"NORMAL"},"698232":{"cn":"698232","nombre":"AUGMENTINE 875 mg/125 mg POLVO PARA SUSPENSION ORAL EN SOBRES , 30 sobres","principio_activo":"AMOXICILINA TRIHIDRATO,CLAVULANICO ACIDO","laboratorio":"GLAXOSMITHKLINE, S.A.","tipo_farmaco":"Medicamento Etica","pvp_iva":14.3,"menor_precio_agrupacion":14.3,"agrupacion_code":"3891","agrupacion_nombre":"AMOXICILINA/ AC CLAVULANICO 875MG/125MG 30 SOBRES SOLUCION/SUSPENSION ORAL","pvl_referencia_boe":6.54,"pvpiva_referencia_boe":10.21,"pvl_estimated":9.21,"conjunto_referencia_code":"F32","conjunto_principio_activo":"Amoxicilina/Clavulánico","aportacion":"NORMAL"},"698687":{"cn":"698687","nombre":"AUGMENTINE 500 mg/125 mg POLVO PARA SUSPENSION ORAL EN SOBRES , 30 sobres","principio_activo":"AMOXICILINA TRIHIDRATO,CLAVULANICO ACIDO","laboratorio":"GLAXOSMITHKLINE, S.A.","tipo_farmaco":"Medicamento Etica","pvp_iva":8.18,"menor_precio_agrupacion":8.18,"agrupacion_code":"3889","agrupacion_nombre":"AMOXICILINA/ AC CLAVULANICO 500MG/125MG 30 SOBRES SOLUCION/SUSPENSION ORAL","pvl_referencia_boe":3.74,"pvpiva_referencia_boe":5.84,"pvl_estimated":5.27,"conjunto_referencia_code":"F32","conjunto_principio_activo":"Amoxicilina/Clavulánico","aportacion":"NORMAL"},"700542":{"cn":"700542","nombre":"BLOKIUM 100 mg comprimidos, 60 comprimidos","principio_activo":"ATENOLOL","laboratorio":"ALMIRALL, S.A.","tipo_farmaco":"Medicamento Etica","pvp_iva":4.93,"menor_precio_agrupacion":4.93,"agrupacion_code":"3205","agrupacion_nombre":"ATENOLOL 100 MG 60 COMPRIMIDOS","pvl_referencia_boe":3.16,"pvpiva_referencia_boe":4.93,"pvl_estimated":3.18,"conjunto_referencia_code":"F42","conjunto_principio_activo":"Atenolol","aportacion":"ESPECIAL"},"701151":{"cn":"701151","nombre":"BLOKIUM 50 mg comprimidos, 60 COMPRIMIDOS","principio_activo":"ATENOLOL","laboratorio":"ALMIRALL, S.A.","tipo_farmaco":"Medicamento Etica","pvp_iva":2.5,"menor_precio_agrupacion":2.5,"agrupacion_code":"3207","agrupacion_nombre":"ATENOLOL 50 MG 60 COMPRIMIDOS","pvl_referencia_boe":1.6,"pvpiva_referencia_boe":2.5,"pvl_estimated":1.61,"conjunto_referencia_code":"F42","conjunto_principio_activo":"Atenolol","aportacion":"ESPECIAL"},"713729":{"cn":"713729","nombre":"AUGMENTINE 500 MG/125 MG COMPRIMIDOS RECUBIERTOS CON PELICULA. 30 comprimidos","principio_activo":"AMOXICILINA TRIHIDRATO,CLAVULANATO POTASIO","laboratorio":"GLAXOSMITHKLINE, S.A.","tipo_farmaco":"Medicamento Etica","pvp_iva":8.18,"menor_precio_agrupacion":8.18,"agrupacion_code":"3873","agrupacion_nombre":"AMOXICILINA/ AC CLAVULANICO 500MG/125MG 30 COMPRIMIDOS","pvl_referencia_boe":3.74,"pvpiva_referencia_boe":5.84,"pvl_estimated":5.27,"conjunto_referencia_code":"F32","conjunto_principio_activo":"Amoxicilina/Clavulánico","aportacion":"NORMAL"},"715334":{"cn":"715334","nombre":"ZARATOR 10MG 28 COMPRIMIDOS RECUBIERTOS","principio_activo":"ATORVASTATINA","laboratorio":"VIATRIS PHARMACEUTICALS, S.L.","tipo_farmaco":"Medicamento Etica","pvp_iva":3.61,"menor_precio_agrupacion":3.61,"agrupacion_code":"304","agrupacion_nombre":"ATORVASTATINA 10 MG 28 COMPRIMIDOS","pvl_referencia_boe":2.31,"pvpiva_referencia_boe":3.61,"pvl_estimated":2.33,"conjunto_referencia_code":"F46","conjunto_principio_activo":"Atorvastatina","aportacion":"NORMAL"},"716886":{"cn":"716886","nombre":"CARDYL 10 10MG 28 COMPRIMIDOS RECUBIERTOS","principio_activo":"ATORVASTATINA CALCICA TRIHIDRATO","laboratorio":"VIATRIS PHARMACEUTICALS, S.L.","tipo_farmaco":"Medicamento Etica","pvp_iva":3.61,"menor_precio_agrupacion":3.61,"agrupacion_code":"304","agrupacion_nombre":"ATORVASTATINA 10 MG 28 COMPRIMIDOS","pvl_referencia_boe":2.31,"pvpiva_referencia_boe":3.61,"pvl_estimated":2.33,"conjunto_referencia_code":"F46","conjunto_principio_activo":"Atorvastatina","aportacion":"NORMAL"},"723798":{"cn":"723798","nombre":"ADIRO 100 MG COMPRIMIDOS GASTRORRESISTENTES EFG, 30 comprimidos","principio_activo":"ACETILSALICILICO ACIDO","laboratorio":"BAYER HISPANIA, S.L","tipo_farmaco":"Medicamento Generico","pvp_iva":1.45,"menor_precio_agrupacion":1.45,"agrupacion_code":"36","agrupacion_nombre":"ACIDO ACETILSALICILICO 100 MG 30 COMPRIMIDOS ENTERICOS/GASTRORRESISTENTES","pvl_referencia_boe":0.93,"pvpiva_referencia_boe":1.45,"pvl_estimated":0.93,"conjunto_referencia_code":"F6","conjunto_principio_activo":"Ácido acetilsalicílico","aportacion":"NORMAL"},"723973":{"cn":"723973","nombre":"TENORMIN 50 50MG 60 COMPRIMIDOS RANURADOS","principio_activo":"ATENOLOL","laboratorio":"ATNAHS PHARMA NETHERLANDS B.V.","tipo_farmaco":"Medicamento Etica","pvp_iva":2.5,"menor_precio_agrupacion":2.5,"agrupacion_code":"3207","agrupacion_nombre":"ATENOLOL 50 MG 60 COMPRIMIDOS","pvl_referencia_boe":1.6,"pvpiva_referencia_boe":2.5,"pvl_estimated":1.61,"conjunto_referencia_code":"F42","conjunto_principio_activo":"Atenolol","aportacion":"ESPECIAL"},"725365":{"cn":"725365","nombre":"VALDOXAN 25 mg COMPRIMIDOS RECUBIERTOS CON PELICULA, 56 comprimidos","principio_activo":"AGOMELATINA","laboratorio":"SERVIER S.L.","tipo_farmaco":"Medicamento Etica","pvp_iva":61.3,"menor_precio_agrupacion":null,"agrupacion_code":"4175","agrupacion_nombre":"AGOMELATINA 25MG 56 COMPRIMIDOS","pvl_referencia_boe":39.27,"pvpiva_referencia_boe":61.3,"pvl_estimated":39.5,"conjunto_referencia_code":"F19","conjunto_principio_activo":"Agomelatina","aportacion":"ESPECIAL"},"725579":{"cn":"725579","nombre":"ACIDO FOLICO QUALIGEN 5 MG COMPRIMIDOS, 28 comprimidos","principio_activo":"FOLICO ACIDO","laboratorio":"NEURAXPHARM SPAIN, S.L.U","tipo_farmaco":"Medicamento Etica","pvp_iva":2.5,"menor_precio_agrupacion":2.5,"agrupacion_code":"80","agrupacion_nombre":"ACIDO FOLICO  5 MG 28 COMPRIMIDOS","pvl_referencia_boe":1.6,"pvpiva_referencia_boe":2.5,"pvl_estimated":1.61,"conjunto_referencia_code":"F9","conjunto_principio_activo":"Ácido fólico","aportacion":"NORMAL"},"726808":{"cn":"726808","nombre":"ARIMIDEX 1 mg COMPRIMIDOS RECUBIERTOS CON PELICULA, 28 comprimidos","principio_activo":"ANASTROZOL","laboratorio":"ELAM PHARMA LABS, S.L.","tipo_farmaco":"Medicamento Etica","pvp_iva":60.09,"menor_precio_agrupacion":60.09,"agrupacion_code":"3202","agrupacion_nombre":"ANASTROZOL 1 MG 28 COMPRIMIDOS","pvl_referencia_boe":38.49,"pvpiva_referencia_boe":60.09,"pvl_estimated":38.72,"conjunto_referencia_code":"F36","conjunto_principio_activo":"Anastrozol","aportacion":"ESPECIAL"},"728154":{"cn":"728154","nombre":"ABILIFY 5MG 28 COMPRIMIDOS","principio_activo":"ARIPIPRAZOL","laboratorio":"OTSUKA PHARMACEUTICAL, S.A.","tipo_farmaco":"Medicamento Etica","pvp_iva":23.59,"menor_precio_agrupacion":23.59,"agrupacion_code":"281","agrupacion_nombre":"ARIPIPRAZOL 5 MG 28 COMPRIMIDOS","pvl_referencia_boe":15.11,"pvpiva_referencia_boe":23.59,"pvl_estimated":15.2,"conjunto_referencia_code":"F41","conjunto_principio_activo":"Aripiprazol","aportacion":"ESPECIAL"},"728311":{"cn":"728311","nombre":"ABILIFY 30 MG COMPRIMIDOS 28 comprimidos","principio_activo":"ARIPIPRAZOL","laboratorio":"OTSUKA PHARMACEUTICAL, S.A.","tipo_farmaco":"Medicamento Etica","pvp_iva":141.51,"menor_precio_agrupacion":141.51,"agrupacion_code":"4021","agrupacion_nombre":"ARIPIPRAZOL 30 MG 28 COMPRIMIDOS","pvl_referencia_boe":90.65,"pvpiva_referencia_boe":141.51,"pvl_estimated":91.18,"conjunto_referencia_code":"F41","conjunto_principio_activo":"Aripiprazol","aportacion":"ESPECIAL"},"729095":{"cn":"729095","nombre":"ACICLOVIR NORMON 800 mg comprimidos , 35 comprimidos","principio_activo":"ACICLOVIR","laboratorio":"NORMON S.A.","tipo_farmaco":"Medicamento Generico","pvp_iva":52.95,"menor_precio_agrupacion":52.95,"agrupacion_code":"30","agrupacion_nombre":"ACICLOVIR 800 MG 35 COMPRIMIDOS","pvl_referencia_boe":33.92,"pvpiva_referencia_boe":52.95,"pvl_estimated":34.12,"conjunto_referencia_code":"F4","conjunto_principio_activo":"Aciclovir","aportacion":"NORMAL"},"754465":{"cn":"754465","nombre":"ARIMIDEX 1MG 28 COMPRIMIDOS RECUB CON PELICULA","principio_activo":"ANASTROZOL","laboratorio":"JUVISE PHARMACEUTICALS","tipo_farmaco":"Medicamento Etica","pvp_iva":60.09,"menor_precio_agrupacion":60.09,"agrupacion_code":"3202","agrupacion_nombre":"ANASTROZOL 1 MG 28 COMPRIMIDOS","pvl_referencia_boe":38.49,"pvpiva_referencia_boe":60.09,"pvl_estimated":38.72,"conjunto_referencia_code":"F36","conjunto_principio_activo":"Anastrozol","aportacion":"ESPECIAL"},"830562":{"cn":"830562","nombre":"ASTUDAL 10MG 30 COMPRIMIDOS","principio_activo":"AMLODIPINO BESILATO","laboratorio":"ALMIRALL, S.A.","tipo_farmaco":"Medicamento Etica","pvp_iva":2.5,"menor_precio_agrupacion":2.5,"agrupacion_code":"3189","agrupacion_nombre":"AMLODIPINO 10 MG 30 COMPRIMIDOS","pvl_referencia_boe":1.6,"pvpiva_referencia_boe":2.5,"pvl_estimated":1.61,"conjunto_referencia_code":"F28","conjunto_principio_activo":"Amlodipino","aportacion":"ESPECIAL"},"849612":{"cn":"849612","nombre":"ZYLORIC 100MG 100 COMPRIMIDOS","principio_activo":"ALOPURINOL","laboratorio":"FAES FARMA, S.A.","tipo_farmaco":"Medicamento Etica","pvp_iva":3.12,"menor_precio_agrupacion":3.12,"agrupacion_code":"167","agrupacion_nombre":"ALOPURINOL 100 MG 100 COMPRIMIDOS","pvl_referencia_boe":2.0,"pvpiva_referencia_boe":3.12,"pvl_estimated":2.01,"conjunto_referencia_code":"F23","conjunto_principio_activo":"Alopurinol","aportacion":"ESPECIAL"},"862664":{"cn":"862664","nombre":"FOSAMAX SEMANAL 70MG 4 COMPRIMIDOS","principio_activo":"ALENDRONICO ACIDO","laboratorio":"ORGANON SALUD, S.L.","tipo_farmaco":"Medicamento Etica","pvp_iva":9.99,"menor_precio_agrupacion":9.99,"agrupacion_code":"3179","agrupacion_nombre":"ACIDO ALENDRONICO 70 MG 4 COMPRIMIDOS","pvl_referencia_boe":6.4,"pvpiva_referencia_boe":9.99,"pvl_estimated":6.44,"conjunto_referencia_code":"F7","conjunto_principio_activo":"Ácido alendrónico","aportacion":"NORMAL"},"884304":{"cn":"884304","nombre":"ZOVIRAX  400 mg/5 ml SUSPENSION ORAL , 1 frasco de 100 ml","principio_activo":"ACICLOVIR","laboratorio":"GLAXOSMITHKLINE, S.A.","tipo_farmaco":"Medicamento Etica","pvp_iva":15.13,"menor_precio_agrupacion":null,"agrupacion_code":null,"agrupacion_nombre":null,"pvl_referencia_boe":9.69,"pvpiva_referencia_boe":15.13,"pvl_estimated":9.75,"conjunto_referencia_code":"F4","conjunto_principio_activo":"Aciclovir","aportacion":"NORMAL"},"885178":{"cn":"885178","nombre":"TRANKIMAZIN 0,25MG 30 COMPRIMIDOS","principio_activo":"ALPRAZOLAM","laboratorio":"VIATRIS PHARMACEUTICALS, S.L.","tipo_farmaco":"Medicamento Etica","pvp_iva":1.64,"menor_precio_agrupacion":1.64,"agrupacion_code":"170","agrupacion_nombre":"ALPRAZOLAM 0,25 MG 30 COMPRIMIDOS","pvl_referencia_boe":1.05,"pvpiva_referencia_boe":1.64,"pvl_estimated":1.06,"conjunto_referencia_code":"F24","conjunto_principio_activo":"Alprazolam","aportacion":"NORMAL"},"885186":{"cn":"885186","nombre":"TRANKIMAZIN 0,5MG 30 COMPRIMIDOS","principio_activo":"ALPRAZOLAM","laboratorio":"VIATRIS PHARMACEUTICALS, S.L.","tipo_farmaco":"Medicamento Etica","pvp_iva":2.11,"menor_precio_agrupacion":2.11,"agrupacion_code":"172","agrupacion_nombre":"ALPRAZOLAM 0,5 MG 30 COMPRIMIDOS","pvl_referencia_boe":1.35,"pvpiva_referencia_boe":2.11,"pvl_estimated":1.36,"conjunto_referencia_code":"F24","conjunto_principio_activo":"Alprazolam","aportacion":"NORMAL"},"890418":{"cn":"890418","nombre":"ALOPURINOL NORMON 100MG 25 COMPRIMIDOS EFG","principio_activo":"ALOPURINOL","laboratorio":"NORMON S.A.","tipo_farmaco":"Medicamento Generico","pvp_iva":1.67,"menor_precio_agrupacion":1.67,"agrupacion_code":"168","agrupacion_nombre":"ALOPURINOL 100 MG 25 COMPRIMIDOS","pvl_referencia_boe":1.07,"pvpiva_referencia_boe":1.67,"pvl_estimated":1.08,"conjunto_referencia_code":"F23","conjunto_principio_activo":"Alopurinol","aportacion":"ESPECIAL"},"939579":{"cn":"939579","nombre":"ACFOL 5MG 28 COMPRIMIDOS","principio_activo":"FOLICO ACIDO","laboratorio":"ITALFARMACO S.A.","tipo_farmaco":"Medicamento Etica","pvp_iva":2.5,"menor_precio_agrupacion":2.5,"agrupacion_code":"80","agrupacion_nombre":"ACIDO FOLICO  5 MG 28 COMPRIMIDOS","pvl_referencia_boe":1.6,"pvpiva_referencia_boe":2.5,"pvl_estimated":1.61,"conjunto_referencia_code":"F9","conjunto_principio_activo":"Ácido fólico","aportacion":"NORMAL"},"682682":{"cn":"682682","nombre":"ACICLOVIR PENSA 800MG 35 COMPRIMIDOS DISPERSAB EFG","principio_activo":"ACICLOVIR","laboratorio":"TOWA PHARMACEUTICAL, S.A.","tipo_farmaco":"Medicamento Generico","pvp_iva":52.95,"menor_precio_agrupacion":52.95,"agrupacion_code":"30","agrupacion_nombre":"ACICLOVIR 800 MG 35 COMPRIMIDOS","pvl_referencia_boe":null,"pvpiva_referencia_boe":null,"pvl_estimated":34.12,"conjunto_referencia_code":null,"conjunto_principio_activo":null,"aportacion":"NORMAL"},"705669":{"cn":"705669","nombre":"ACICLOVIR STADA 800 MG COMPRIMIDOS EFG , 35 comprimidos","principio_activo":"ACICLOVIR","laboratorio":"STADA, S.L","tipo_farmaco":"Medicamento Generico","pvp_iva":52.95,"menor_precio_agrupacion":52.95,"agrupacion_code":"30","agrupacion_nombre":"ACICLOVIR 800 MG 35 COMPRIMIDOS","pvl_referencia_boe":null,"pvpiva_referencia_boe":null,"pvl_estimated":34.12,"conjunto_referencia_code":null,"conjunto_principio_activo":null,"aportacion":"NORMAL"},"663569":{"cn":"663569","nombre":"RISEDRONATO SEMANAL STADA 35 mg comprimidos recubiertos con pelicula , 4 comprim","principio_activo":"RISEDRONATO SODIO","laboratorio":"STADA, S.L","tipo_farmaco":"Medicamento Generico","pvp_iva":19.84,"menor_precio_agrupacion":19.84,"agrupacion_code":"125","agrupacion_nombre":"ACIDO RISEDRONICO 35 MG 4 COMPRIMIDOS","pvl_referencia_boe":null,"pvpiva_referencia_boe":null,"pvl_estimated":12.78,"conjunto_referencia_code":null,"conjunto_principio_activo":null,"aportacion":"NORMAL"},"664464":{"cn":"664464","nombre":"RISEDRONATO SEMANAL VIATRIS 35 MG COMPRIMIDOS RECUBIERTOS CON PELICULA EFG. 4 co","principio_activo":"RISEDRONATO SODIO","laboratorio":"VIATRIS PHARMACEUTICALS, S.L.","tipo_farmaco":"Medicamento Generico","pvp_iva":19.84,"menor_precio_agrupacion":19.84,"agrupacion_code":"125","agrupacion_nombre":"ACIDO RISEDRONICO 35 MG 4 COMPRIMIDOS","pvl_referencia_boe":null,"pvpiva_referencia_boe":null,"pvl_estimated":12.78,"conjunto_referencia_code":null,"conjunto_principio_activo":null,"aportacion":"NORMAL"},"653398":{"cn":"653398","nombre":"AMLODIPINO CINFA 10MG 30 COMPRIMIDOS EFG","principio_activo":"AMLODIPINO BESILATO","laboratorio":"CINFA S.A.","tipo_farmaco":"Medicamento Generico","pvp_iva":2.5,"menor_precio_agrupacion":2.5,"agrupacion_code":"3189","agrupacion_nombre":"AMLODIPINO 10 MG 30 COMPRIMIDOS","pvl_referencia_boe":null,"pvpiva_referencia_boe":null,"pvl_estimated":1.61,"conjunto_referencia_code":null,"conjunto_principio_activo":null,"aportacion":"ESPECIAL"},"655904":{"cn":"655904","nombre":"AMLODIPINO APOTEX 10 mg comprimidos , 30 comprimidos","principio_activo":"AMLODIPINO BESILATO","laboratorio":"AUROVITAS SPAIN, S.A.U","tipo_farmaco":"Medicamento Generico","pvp_iva":2.5,"menor_precio_agrupacion":2.5,"agrupacion_code":"3189","agrupacion_nombre":"AMLODIPINO 10 MG 30 COMPRIMIDOS","pvl_referencia_boe":null,"pvpiva_referencia_boe":null,"pvl_estimated":1.61,"conjunto_referencia_code":null,"conjunto_principio_activo":null,"aportacion":"ESPECIAL"},"660307":{"cn":"660307","nombre":"ATORVASTATINA TECNIGEN 10 mg comprimidos recubiertos con pelicula , 28 comprimid","principio_activo":"ATORVASTATINA CALCICA TRIHIDRATO","laboratorio":"TECNIMEDE ESPAÑA INDUSTRIA FARMACEUTICA S.A.","tipo_farmaco":"Medicamento Generico","pvp_iva":3.61,"menor_precio_agrupacion":3.61,"agrupacion_code":"304","agrupacion_nombre":"ATORVASTATINA 10 MG 28 COMPRIMIDOS","pvl_referencia_boe":null,"pvpiva_referencia_boe":null,"pvl_estimated":2.33,"conjunto_referencia_code":null,"conjunto_principio_activo":null,"aportacion":"NORMAL"},"660550":{"cn":"660550","nombre":"ATORVASTATINA PENSA 10 mg comprimidos recubiertos con pelicula , 28 comprimidos","principio_activo":"ATORVASTATINA CALCICA TRIHIDRATO","laboratorio":"TOWA PHARMACEUTICAL, S.A.","tipo_farmaco":"Medicamento Generico","pvp_iva":3.61,"menor_precio_agrupacion":3.61,"agrupacion_code":"304","agrupacion_nombre":"ATORVASTATINA 10 MG 28 COMPRIMIDOS","pvl_referencia_boe":null,"pvpiva_referencia_boe":null,"pvl_estimated":2.33,"conjunto_referencia_code":null,"conjunto_principio_activo":null,"aportacion":"NORMAL"},"660309":{"cn":"660309","nombre":"ATORVATATINA TECNIGEN 20 mg comprimidos recubiertos con pelicula , 28 comprimido","principio_activo":"ATORVASTATINA CALCICA TRIHIDRATO","laboratorio":"TECNIMEDE ESPAÑA INDUSTRIA FARMACEUTICA S.A.","tipo_farmaco":"Medicamento Generico","pvp_iva":7.2,"menor_precio_agrupacion":7.2,"agrupacion_code":"305","agrupacion_nombre":"ATORVASTATINA 20 MG 28 COMPRIMIDOS","pvl_referencia_boe":null,"pvpiva_referencia_boe":null,"pvl_estimated":4.64,"conjunto_referencia_code":null,"conjunto_principio_activo":null,"aportacion":"NORMAL"},"660551":{"cn":"660551","nombre":"ATORVASTATINA PENSA 20 mg comprimidos recubiertos con pelicula , 28 comprimidos","principio_activo":"ATORVASTATINA CALCICA TRIHIDRATO","laboratorio":"TOWA PHARMACEUTICAL, S.A.","tipo_farmaco":"Medicamento Generico","pvp_iva":7.2,"menor_precio_agrupacion":7.2,"agrupacion_code":"305","agrupacion_nombre":"ATORVASTATINA 20 MG 28 COMPRIMIDOS","pvl_referencia_boe":null,"pvpiva_referencia_boe":null,"pvl_estimated":4.64,"conjunto_referencia_code":null,"conjunto_principio_activo":null,"aportacion":"NORMAL"},"660310":{"cn":"660310","nombre":"ATORVASTATINA TECNIGEN 40 mg comprimidos recubiertos con pelicula , 28 comprimid","principio_activo":"ATORVASTATINA CALCICA TRIHIDRATO","laboratorio":"TECNIMEDE ESPAÑA INDUSTRIA FARMACEUTICA S.A.","tipo_farmaco":"Medicamento Generico","pvp_iva":14.39,"menor_precio_agrupacion":14.39,"agrupacion_code":"306","agrupacion_nombre":"ATORVASTATINA 40 MG 28 COMPRIMIDOS","pvl_referencia_boe":null,"pvpiva_referencia_boe":null,"pvl_estimated":9.27,"conjunto_referencia_code":null,"conjunto_principio_activo":null,"aportacion":"NORMAL"},"660552":{"cn":"660552","nombre":"ATORVASTATINA PENSA 40 mg comprimidos recubiertos con pelicula , 28 comprimidos","principio_activo":"ATORVASTATINA CALCICA TRIHIDRATO","laboratorio":"TOWA PHARMACEUTICAL, S.A.","tipo_farmaco":"Medicamento Generico","pvp_iva":14.39,"menor_precio_agrupacion":14.39,"agrupacion_code":"306","agrupacion_nombre":"ATORVASTATINA 40 MG 28 COMPRIMIDOS","pvl_referencia_boe":null,"pvpiva_referencia_boe":null,"pvl_estimated":9.27,"conjunto_referencia_code":null,"conjunto_principio_activo":null,"aportacion":"NORMAL"},"704003":{"cn":"704003","nombre":"ABIK 10 MG COMPRIMIDOS BUCODISPERSABLES EFG , 28 comprimidos","principio_activo":"ARIPIPRAZOL","laboratorio":"KERN PHARMA, S.L.","tipo_farmaco":"Medicamento Generico","pvp_iva":47.18,"menor_precio_agrupacion":47.18,"agrupacion_code":"277","agrupacion_nombre":"ARIPIPRAZOL 10 MG 28 COMPRIMIDOS BUCODISPERSABLES/LIOTABS","pvl_referencia_boe":null,"pvpiva_referencia_boe":null,"pvl_estimated":30.4,"conjunto_referencia_code":null,"conjunto_principio_activo":null,"aportacion":"ESPECIAL"},"704753":{"cn":"704753","nombre":"ARIPIPRAZOL FLAS CINFA 10 MG COMPRIMIDOS BUCODISPERSABLES EFG , 28 comprimidos","principio_activo":"ARIPIPRAZOL","laboratorio":"CINFA S.A.","tipo_farmaco":"Medicamento Generico","pvp_iva":47.18,"menor_precio_agrupacion":47.18,"agrupacion_code":"277","agrupacion_nombre":"ARIPIPRAZOL 10 MG 28 COMPRIMIDOS BUCODISPERSABLES/LIOTABS","pvl_referencia_boe":null,"pvpiva_referencia_boe":null,"pvl_estimated":30.4,"conjunto_referencia_code":null,"conjunto_principio_activo":null,"aportacion":"ESPECIAL"},"704004":{"cn":"704004","nombre":"ABIK 15 MG COMPRIMIDOS BUCODISPERSABLES EFG , 28 comprimidos","principio_activo":"ARIPIPRAZOL","laboratorio":"KERN PHARMA, S.L.","tipo_farmaco":"Medicamento Generico","pvp_iva":70.76,"menor_precio_agrupacion":70.76,"agrupacion_code":"279","agrupacion_nombre":"ARIPIPRAZOL 15 MG 28 COMPRIMIDOS BUCODISPERSABLES/LIOTABS","pvl_referencia_boe":null,"pvpiva_referencia_boe":null,"pvl_estimated":45.59,"conjunto_referencia_code":null,"conjunto_principio_activo":null,"aportacion":"ESPECIAL"},"704754":{"cn":"704754","nombre":"ARIPIPRAZOL FLAS CINFA 15 MG COMPRIMIDOS BUCODISPERSABLES EFG , 28 comprimidos","principio_activo":"ARIPIPRAZOL","laboratorio":"CINFA S.A.","tipo_farmaco":"Medicamento Generico","pvp_iva":70.76,"menor_precio_agrupacion":70.76,"agrupacion_code":"279","agrupacion_nombre":"ARIPIPRAZOL 15 MG 28 COMPRIMIDOS BUCODISPERSABLES/LIOTABS","pvl_referencia_boe":null,"pvpiva_referencia_boe":null,"pvl_estimated":45.59,"conjunto_referencia_code":null,"conjunto_principio_activo":null,"aportacion":"ESPECIAL"},"655290":{"cn":"655290","nombre":"ALPRAZOLAM STADA 0,5MG 30 COMPRIMIDOS EFG","principio_activo":"ALPRAZOLAM","laboratorio":"STADA, S.L","tipo_farmaco":"Medicamento Generico","pvp_iva":2.11,"menor_precio_agrupacion":2.11,"agrupacion_code":"172","agrupacion_nombre":"ALPRAZOLAM 0,5 MG 30 COMPRIMIDOS","pvl_referencia_boe":null,"pvpiva_referencia_boe":null,"pvl_estimated":1.36,"conjunto_referencia_code":null,"conjunto_principio_activo":null,"aportacion":"NORMAL"},"663930":{"cn":"663930","nombre":"ALPRAZOLAM SANDOZ 0,50MG 30 COMPRIMIDOS EFG","principio_activo":"ALPRAZOLAM","laboratorio":"SANDOZ FARMACEUTICA, S.A","tipo_farmaco":"Medicamento Generico","pvp_iva":2.11,"menor_precio_agrupacion":2.11,"agrupacion_code":"172","agrupacion_nombre":"ALPRAZOLAM 0,5 MG 30 COMPRIMIDOS","pvl_referencia_boe":null,"pvpiva_referencia_boe":null,"pvl_estimated":1.36,"conjunto_referencia_code":null,"conjunto_principio_activo":null,"aportacion":"NORMAL"},"655357":{"cn":"655357","nombre":"ALPRAZOLAM STADA 0,25MG 30 COMPRIMIDOS EFG","principio_activo":"ALPRAZOLAM","laboratorio":"STADA, S.L","tipo_farmaco":"Medicamento Generico","pvp_iva":1.64,"menor_precio_agrupacion":1.64,"agrupacion_code":"170","agrupacion_nombre":"ALPRAZOLAM 0,25 MG 30 COMPRIMIDOS","pvl_referencia_boe":null,"pvpiva_referencia_boe":null,"pvl_estimated":1.06,"conjunto_referencia_code":null,"conjunto_principio_activo":null,"aportacion":"NORMAL"},"663898":{"cn":"663898","nombre":"ALPRAZOLAM SUN 0,25 mg COMPRIMIDOS EFG , 30 comprimidos","principio_activo":"ALPRAZOLAM","laboratorio":"SUN PHARMA LABORATORIOS, S.L","tipo_farmaco":"Medicamento Generico","pvp_iva":1.64,"menor_precio_agrupacion":1.64,"agrupacion_code":"170","agrupacion_nombre":"ALPRAZOLAM 0,25 MG 30 COMPRIMIDOS","pvl_referencia_boe":null,"pvpiva_referencia_boe":null,"pvl_estimated":1.06,"conjunto_referencia_code":null,"conjunto_principio_activo":null,"aportacion":"NORMAL"},"655282":{"cn":"655282","nombre":"ALPRAZOLAM STADA 1MG 30 COMPRIMIDOS EFG","principio_activo":"ALPRAZOLAM","laboratorio":"STADA, S.L","tipo_farmaco":"Medicamento Generico","pvp_iva":2.5,"menor_precio_agrupacion":2.5,"agrupacion_code":"175","agrupacion_nombre":"ALPRAZOLAM 1 MG 30 COMPRIMIDOS","pvl_referencia_boe":null,"pvpiva_referencia_boe":null,"pvl_estimated":1.61,"conjunto_referencia_code":null,"conjunto_principio_activo":null,"aportacion":"NORMAL"},"663872":{"cn":"663872","nombre":"ALPRAZOLAM SUN 1 mg COMPRIMIDOS EFG , 30 comprimidos","principio_activo":"ALPRAZOLAM","laboratorio":"SUN PHARMA LABORATORIOS, S.L","tipo_farmaco":"Medicamento Generico","pvp_iva":2.5,"menor_precio_agrupacion":2.5,"agrupacion_code":"175","agrupacion_nombre":"ALPRAZOLAM 1 MG 30 COMPRIMIDOS","pvl_referencia_boe":null,"pvpiva_referencia_boe":null,"pvl_estimated":1.61,"conjunto_referencia_code":null,"conjunto_principio_activo":null,"aportacion":"NORMAL"},"655050":{"cn":"655050","nombre":"ALPRAZOLAM STADA 2MG 30 COMPRIMIDOS EFG","principio_activo":"ALPRAZOLAM","laboratorio":"STADA, S.L","tipo_farmaco":"Medicamento Generico","pvp_iva":4.84,"menor_precio_agrupacion":4.84,"agrupacion_code":"177","agrupacion_nombre":"ALPRAZOLAM 2 MG 30 COMPRIMIDOS","pvl_referencia_boe":null,"pvpiva_referencia_boe":null,"pvl_estimated":3.12,"conjunto_referencia_code":null,"conjunto_principio_activo":null,"aportacion":"NORMAL"},"658180":{"cn":"658180","nombre":"ALPRAZOLAM SUN 2 mg COMPRIMIDOS EFG , 30 comprimidos","principio_activo":"ALPRAZOLAM","laboratorio":"SUN PHARMA LABORATORIOS, S.L","tipo_farmaco":"Medicamento Generico","pvp_iva":4.84,"menor_precio_agrupacion":4.84,"agrupacion_code":"177","agrupacion_nombre":"ALPRAZOLAM 2 MG 30 COMPRIMIDOS","pvl_referencia_boe":null,"pvpiva_referencia_boe":null,"pvl_estimated":3.12,"conjunto_referencia_code":null,"conjunto_principio_activo":null,"aportacion":"NORMAL"},"652096":{"cn":"652096","nombre":"ACIDO ALENDRONICO SEMANAL STADA 70MG 4 COMPRIM EFG","principio_activo":"ALENDRONICO ACIDO","laboratorio":"STADA, S.L","tipo_farmaco":"Medicamento Generico","pvp_iva":9.99,"menor_precio_agrupacion":9.99,"agrupacion_code":"3179","agrupacion_nombre":"ACIDO ALENDRONICO 70 MG 4 COMPRIMIDOS","pvl_referencia_boe":null,"pvpiva_referencia_boe":null,"pvl_estimated":6.44,"conjunto_referencia_code":null,"conjunto_principio_activo":null,"aportacion":"NORMAL"},"652849":{"cn":"652849","nombre":"ACIDO ALENDRONICO SEMANAL VIATRIS 70 mg COMPRIMIDOS EFG, 4 comprimidos","principio_activo":"ALENDRONICO ACIDO","laboratorio":"VIATRIS PHARMACEUTICALS, S.L.","tipo_farmaco":"Medicamento Generico","pvp_iva":9.99,"menor_precio_agrupacion":9.99,"agrupacion_code":"3179","agrupacion_nombre":"ACIDO ALENDRONICO 70 MG 4 COMPRIMIDOS","pvl_referencia_boe":null,"pvpiva_referencia_boe":null,"pvl_estimated":6.44,"conjunto_referencia_code":null,"conjunto_principio_activo":null,"aportacion":"NORMAL"},"656279":{"cn":"656279","nombre":"ACIDO ALENDRONICO TEVA 70MG 4 COMPRIMIDOS EFG","principio_activo":"ALENDRONICO ACIDO","laboratorio":"TEVA PHARMA, S.L.U","tipo_farmaco":"Medicamento Generico","pvp_iva":9.99,"menor_precio_agrupacion":9.99,"agrupacion_code":"3179","agrupacion_nombre":"ACIDO ALENDRONICO 70 MG 4 COMPRIMIDOS","pvl_referencia_boe":null,"pvpiva_referencia_boe":null,"pvl_estimated":6.44,"conjunto_referencia_code":null,"conjunto_principio_activo":null,"aportacion":"NORMAL"},"709218":{"cn":"709218","nombre":"ARIPIPRAZOL NORMON 1 MG/ML SOLUCION ORAL EFG , 150 ml","principio_activo":"ARIPIPRAZOL","laboratorio":"NORMON S.A.","tipo_farmaco":"Medicamento Generico","pvp_iva":25.27,"menor_precio_agrupacion":25.27,"agrupacion_code":"3567","agrupacion_nombre":"ARIPIPRAZOL 1MG/ML 150 ML SOLUCION/SUSPENSION ORAL","pvl_referencia_boe":null,"pvpiva_referencia_boe":null,"pvl_estimated":16.28,"conjunto_referencia_code":null,"conjunto_principio_activo":null,"aportacion":"ESPECIAL"},"709769":{"cn":"709769","nombre":"ABIK 10 MG/ML SOLUCION ORAL EFG , 150 ml","principio_activo":"ARIPIPRAZOL","laboratorio":"KERN PHARMA, S.L.","tipo_farmaco":"Medicamento Generico","pvp_iva":25.27,"menor_precio_agrupacion":25.27,"agrupacion_code":"3567","agrupacion_nombre":"ARIPIPRAZOL 1MG/ML 150 ML SOLUCION/SUSPENSION ORAL","pvl_referencia_boe":null,"pvpiva_referencia_boe":null,"pvl_estimated":16.28,"conjunto_referencia_code":null,"conjunto_principio_activo":null,"aportacion":"ESPECIAL"},"653631":{"cn":"653631","nombre":"ACECLOFENACO KERN PHARMA 100MG 40 COMPRIMIDOS EFG","principio_activo":"ACECLOFENACO","laboratorio":"KERN PHARMA, S.L.","tipo_farmaco":"Medicamento Generico","pvp_iva":5.65,"menor_precio_agrupacion":5.65,"agrupacion_code":"8","agrupacion_nombre":"ACECLOFENACO 100 MG 40 COMPRIMIDOS","pvl_referencia_boe":null,"pvpiva_referencia_boe":null,"pvl_estimated":3.64,"conjunto_referencia_code":null,"conjunto_principio_activo":null,"aportacion":"NORMAL"},"659677":{"cn":"659677","nombre":"ACECLOFENACO MABO 100 mg Comprimidos recubiertos con pelicula, 40 comprimidos","principio_activo":"ACECLOFENACO","laboratorio":"MABO-FARMA, S.A.","tipo_farmaco":"Medicamento Generico","pvp_iva":5.65,"menor_precio_agrupacion":5.65,"agrupacion_code":"8","agrupacion_nombre":"ACECLOFENACO 100 MG 40 COMPRIMIDOS","pvl_referencia_boe":null,"pvpiva_referencia_boe":null,"pvl_estimated":3.64,"conjunto_referencia_code":null,"conjunto_principio_activo":null,"aportacion":"NORMAL"},"653630":{"cn":"653630","nombre":"ACECLOFENACO KERN PHARMA 100MG 20 COMPRIMIDOS EFG","principio_activo":"ACECLOFENACO","laboratorio":"KERN PHARMA, S.L.","tipo_farmaco":"Medicamento Generico","pvp_iva":2.83,"menor_precio_agrupacion":2.83,"agrupacion_code":"6","agrupacion_nombre":"ACECLOFENACO 100 MG 20 COMPRIMIDOS","pvl_referencia_boe":null,"pvpiva_referencia_boe":null,"pvl_estimated":1.82,"conjunto_referencia_code":null,"conjunto_principio_activo":null,"aportacion":"NORMAL"},"659777":{"cn":"659777","nombre":"ACECLOFENACO CINFA 100 mg comprimidos recubiertos con pelicula, 20 comprimidos","principio_activo":"ACECLOFENACO","laboratorio":"CINFA S.A.","tipo_farmaco":"Medicamento Generico","pvp_iva":2.83,"menor_precio_agrupacion":2.83,"agrupacion_code":"6","agrupacion_nombre":"ACECLOFENACO 100 MG 20 COMPRIMIDOS","pvl_referencia_boe":null,"pvpiva_referencia_boe":null,"pvl_estimated":1.82,"conjunto_referencia_code":null,"conjunto_principio_activo":null,"aportacion":"NORMAL"},"653255":{"cn":"653255","nombre":"ATENOLOL ALTER 100MG 60 COMPRIMIDOS EFG","principio_activo":"ATENOLOL","laboratorio":"ALTER S.A.","tipo_farmaco":"Medicamento Generico","pvp_iva":4.93,"menor_precio_agrupacion":4.93,"agrupacion_code":"3205","agrupacion_nombre":"ATENOLOL 100 MG 60 COMPRIMIDOS","pvl_referencia_boe":null,"pvpiva_referencia_boe":null,"pvl_estimated":3.18,"conjunto_referencia_code":null,"conjunto_principio_activo":null,"aportacion":"ESPECIAL"},"706721":{"cn":"706721","nombre":"ATENOLOL CINFA 100MG 60 COMPRIMIDOS EFG","principio_activo":"ATENOLOL","laboratorio":"CINFA S.A.","tipo_farmaco":"Medicamento Generico","pvp_iva":4.93,"menor_precio_agrupacion":4.93,"agrupacion_code":"3205","agrupacion_nombre":"ATENOLOL 100 MG 60 COMPRIMIDOS","pvl_referencia_boe":null,"pvpiva_referencia_boe":null,"pvl_estimated":3.18,"conjunto_referencia_code":null,"conjunto_principio_activo":null,"aportacion":"ESPECIAL"},"675168":{"cn":"675168","nombre":"ACIDO IBANDRONICO ALACAN 150 mg COMPRIMIDOS RECUBIERTOS CON PELICULA EFG, 1 comp","principio_activo":"IBANDRONICO ACIDO","laboratorio":"ESPECIALIDADES FARMACEUTICAS CENTRUM S.A.","tipo_farmaco":"Medicamento Generico","pvp_iva":13.0,"menor_precio_agrupacion":13.0,"agrupacion_code":"105","agrupacion_nombre":"ACIDO IBANDRONICO 150 MG 1 COMPRIMIDOS","pvl_referencia_boe":null,"pvpiva_referencia_boe":null,"pvl_estimated":8.38,"conjunto_referencia_code":null,"conjunto_principio_activo":null,"aportacion":"NORMAL"},"676037":{"cn":"676037","nombre":"ACIDO IBANDRONICO ALTER 150 mg COMPRIMIDOS RECUBIERTOS CON PELICULA , 1 comprimi","principio_activo":"IBANDRONICO ACIDO","laboratorio":"ALTER S.A.","tipo_farmaco":"Medicamento Generico","pvp_iva":13.0,"menor_precio_agrupacion":13.0,"agrupacion_code":"105","agrupacion_nombre":"ACIDO IBANDRONICO 150 MG 1 COMPRIMIDOS","pvl_referencia_boe":null,"pvpiva_referencia_boe":null,"pvl_estimated":8.38,"conjunto_referencia_code":null,"conjunto_principio_activo":null,"aportacion":"NORMAL"},"653397":{"cn":"653397","nombre":"AMLODIPINO CINFA 5MG 30 COMPRIMIDOS EFG","principio_activo":"AMLODIPINO BESILATO","laboratorio":"CINFA S.A.","tipo_farmaco":"Medicamento Generico","pvp_iva":1.25,"menor_precio_agrupacion":1.25,"agrupacion_code":"3190","agrupacion_nombre":"AMLODIPINO 5 MG 30 COMPRIMIDOS","pvl_referencia_boe":null,"pvpiva_referencia_boe":null,"pvl_estimated":0.81,"conjunto_referencia_code":null,"conjunto_principio_activo":null,"aportacion":"ESPECIAL"},"655901":{"cn":"655901","nombre":"AMLODIPINO APOTEX 5 mg comprimidos , 30 comprimidos","principio_activo":"AMLODIPINO BESILATO","laboratorio":"AUROVITAS SPAIN, S.A.U","tipo_farmaco":"Medicamento Generico","pvp_iva":1.25,"menor_precio_agrupacion":1.25,"agrupacion_code":"3190","agrupacion_nombre":"AMLODIPINO 5 MG 30 COMPRIMIDOS","pvl_referencia_boe":null,"pvpiva_referencia_boe":null,"pvl_estimated":0.81,"conjunto_referencia_code":null,"conjunto_principio_activo":null,"aportacion":"ESPECIAL"},"657684":{"cn":"657684","nombre":"ALOPURINOL CINFA 300 mg comprimidos , 30 comprimidos","principio_activo":"ALOPURINOL","laboratorio":"CINFA S.A.","tipo_farmaco":"Medicamento Generico","pvp_iva":2.81,"menor_precio_agrupacion":2.81,"agrupacion_code":"169","agrupacion_nombre":"ALOPURINOL 300 MG 30 COMPRIMIDOS","pvl_referencia_boe":null,"pvpiva_referencia_boe":null,"pvl_estimated":1.81,"conjunto_referencia_code":null,"conjunto_principio_activo":null,"aportacion":"ESPECIAL"},"659653":{"cn":"659653","nombre":"ALOPURINOL TEVA 300 mg comprimidos, 30 comprimidos","principio_activo":"ALOPURINOL","laboratorio":"TEVA PHARMA, S.L.U","tipo_farmaco":"Medicamento Generico","pvp_iva":2.81,"menor_precio_agrupacion":2.81,"agrupacion_code":"169","agrupacion_nombre":"ALOPURINOL 300 MG 30 COMPRIMIDOS","pvl_referencia_boe":null,"pvpiva_referencia_boe":null,"pvl_estimated":1.81,"conjunto_referencia_code":null,"conjunto_principio_activo":null,"aportacion":"ESPECIAL"},"657957":{"cn":"657957","nombre":"ALOPURINOL CINFA 100 mg comprimidos , 25 comprimidos","principio_activo":"ALOPURINOL","laboratorio":"CINFA S.A.","tipo_farmaco":"Medicamento Generico","pvp_iva":1.67,"menor_precio_agrupacion":1.67,"agrupacion_code":"168","agrupacion_nombre":"ALOPURINOL 100 MG 25 COMPRIMIDOS","pvl_referencia_boe":null,"pvpiva_referencia_boe":null,"pvl_estimated":1.08,"conjunto_referencia_code":null,"conjunto_principio_activo":null,"aportacion":"ESPECIAL"},"658047":{"cn":"658047","nombre":"ALOPURINOL PENSA 100 mg comprimidos, 25 comprimidos","principio_activo":"ALOPURINOL","laboratorio":"TOWA PHARMACEUTICAL, S.A.","tipo_farmaco":"Medicamento Generico","pvp_iva":1.67,"menor_precio_agrupacion":1.67,"agrupacion_code":"168","agrupacion_nombre":"ALOPURINOL 100 MG 25 COMPRIMIDOS","pvl_referencia_boe":null,"pvpiva_referencia_boe":null,"pvl_estimated":1.08,"conjunto_referencia_code":null,"conjunto_principio_activo":null,"aportacion":"ESPECIAL"},"673517":{"cn":"673517","nombre":"ALOPURINOL SUN 100 mg COMPRIMIDOS EFG , 25 comprimidos","principio_activo":"ALOPURINOL","laboratorio":"SUN PHARMA LABORATORIOS, S.L","tipo_farmaco":"Medicamento Generico","pvp_iva":1.67,"menor_precio_agrupacion":1.67,"agrupacion_code":"168","agrupacion_nombre":"ALOPURINOL 100 MG 25 COMPRIMIDOS","pvl_referencia_boe":null,"pvpiva_referencia_boe":null,"pvl_estimated":1.08,"conjunto_referencia_code":null,"conjunto_principio_activo":null,"aportacion":"ESPECIAL"},"658021":{"cn":"658021","nombre":"ALOPURINOL CINFA 100 mg comprimidos , 100 comprimidos","principio_activo":"ALOPURINOL","laboratorio":"CINFA S.A.","tipo_farmaco":"Medicamento Generico","pvp_iva":3.12,"menor_precio_agrupacion":3.12,"agrupacion_code":"167","agrupacion_nombre":"ALOPURINOL 100 MG 100 COMPRIMIDOS","pvl_referencia_boe":null,"pvpiva_referencia_boe":null,"pvl_estimated":2.01,"conjunto_referencia_code":null,"conjunto_principio_activo":null,"aportacion":"ESPECIAL"},"659858":{"cn":"659858","nombre":"ALOPURINOL TEVA 100 mg comprimidos, 100 comprimidos","principio_activo":"ALOPURINOL","laboratorio":"TEVA PHARMA, S.L.U","tipo_farmaco":"Medicamento Generico","pvp_iva":3.12,"menor_precio_agrupacion":3.12,"agrupacion_code":"167","agrupacion_nombre":"ALOPURINOL 100 MG 100 COMPRIMIDOS","pvl_referencia_boe":null,"pvpiva_referencia_boe":null,"pvl_estimated":2.01,"conjunto_referencia_code":null,"conjunto_principio_activo":null,"aportacion":"ESPECIAL"},"658211":{"cn":"658211","nombre":"GLUCOBAY 50 50MG 100 COMPRIMIDOS","principio_activo":"ACARBOSA","laboratorio":"BAYER HISPANIA, S.L","tipo_farmaco":"Medicamento Etica","pvp_iva":7.65,"menor_precio_agrupacion":7.65,"agrupacion_code":"4","agrupacion_nombre":"ACARBOSA 50 MG 100 COMPRIMIDOS","pvl_referencia_boe":null,"pvpiva_referencia_boe":null,"pvl_estimated":4.93,"conjunto_referencia_code":null,"conjunto_principio_activo":null,"aportacion":"ESPECIAL"},"662363":{"cn":"662363","nombre":"ACARBOSA TARBIS 50 mg comprimidos , 100 comprimidos","principio_activo":"ACARBOSA","laboratorio":"TARBIS FARMA, S.L.","tipo_farmaco":"Medicamento Etica","pvp_iva":7.65,"menor_precio_agrupacion":7.65,"agrupacion_code":"4","agrupacion_nombre":"ACARBOSA 50 MG 100 COMPRIMIDOS","pvl_referencia_boe":null,"pvpiva_referencia_boe":null,"pvl_estimated":4.93,"conjunto_referencia_code":null,"conjunto_principio_activo":null,"aportacion":"ESPECIAL"},"658237":{"cn":"658237","nombre":"GLUCOBAY 100 100MG 100 COMPRIMIDOS","principio_activo":"ACARBOSA","laboratorio":"BAYER HISPANIA, S.L","tipo_farmaco":"Medicamento Etica","pvp_iva":15.3,"menor_precio_agrupacion":15.3,"agrupacion_code":"2","agrupacion_nombre":"ACARBOSA 100 MG 100 COMPRIMIDOS","pvl_referencia_boe":null,"pvpiva_referencia_boe":null,"pvl_estimated":9.86,"conjunto_referencia_code":null,"conjunto_principio_activo":null,"aportacion":"ESPECIAL"},"662225":{"cn":"662225","nombre":"ACARBOSA TARBIS 100 mg comprimidos , 100 comprimidos","principio_activo":"ACARBOSA","laboratorio":"TARBIS FARMA, S.L.","tipo_farmaco":"Medicamento Etica","pvp_iva":15.3,"menor_precio_agrupacion":15.3,"agrupacion_code":"2","agrupacion_nombre":"ACARBOSA 100 MG 100 COMPRIMIDOS","pvl_referencia_boe":null,"pvpiva_referencia_boe":null,"pvl_estimated":9.86,"conjunto_referencia_code":null,"conjunto_principio_activo":null,"aportacion":"ESPECIAL"},"660218":{"cn":"660218","nombre":"ANASTROZOL NORMON 1 mg Comprimidos recubiertos con pelicula, 28 comprimidos","principio_activo":"ANASTROZOL","laboratorio":"NORMON S.A.","tipo_farmaco":"Medicamento Generico","pvp_iva":60.09,"menor_precio_agrupacion":60.09,"agrupacion_code":"3202","agrupacion_nombre":"ANASTROZOL 1 MG 28 COMPRIMIDOS","pvl_referencia_boe":null,"pvpiva_referencia_boe":null,"pvl_estimated":38.72,"conjunto_referencia_code":null,"conjunto_principio_activo":null,"aportacion":"ESPECIAL"},"662128":{"cn":"662128","nombre":"ANASTROZOL MABO 1 mg COMPRIMIDOS RECUBIERTOS CON PELICULA , 28 comprimidos","principio_activo":"ANASTROZOL","laboratorio":"MABO-FARMA, S.A.","tipo_farmaco":"Medicamento Generico","pvp_iva":60.09,"menor_precio_agrupacion":60.09,"agrupacion_code":"3202","agrupacion_nombre":"ANASTROZOL 1 MG 28 COMPRIMIDOS","pvl_referencia_boe":null,"pvpiva_referencia_boe":null,"pvl_estimated":38.72,"conjunto_referencia_code":null,"conjunto_principio_activo":null,"aportacion":"ESPECIAL"},"662845":{"cn":"662845","nombre":"ANASTROZOL ACCORD 1 mg comprimidos recubiertos con pelicula , 28 comprimidos","principio_activo":"ANASTROZOL","laboratorio":"ACCORD HEALTHCARE, S.L.U","tipo_farmaco":"Medicamento Generico","pvp_iva":60.09,"menor_precio_agrupacion":60.09,"agrupacion_code":"3202","agrupacion_nombre":"ANASTROZOL 1 MG 28 COMPRIMIDOS","pvl_referencia_boe":null,"pvpiva_referencia_boe":null,"pvl_estimated":38.72,"conjunto_referencia_code":null,"conjunto_principio_activo":null,"aportacion":"ESPECIAL"},"660553":{"cn":"660553","nombre":"ATORVASTATINA PENSA 80 mg comprimidos recubiertos con pelicula , 28 comprimidos","principio_activo":"ATORVASTATINA CALCICA TRIHIDRATO","laboratorio":"TOWA PHARMACEUTICAL, S.A.","tipo_farmaco":"Medicamento Generico","pvp_iva":28.79,"menor_precio_agrupacion":28.79,"agrupacion_code":"307","agrupacion_nombre":"ATORVASTATINA 80 MG 28 COMPRIMIDOS","pvl_referencia_boe":null,"pvpiva_referencia_boe":null,"pvl_estimated":18.55,"conjunto_referencia_code":null,"conjunto_principio_activo":null,"aportacion":"NORMAL"},"661070":{"cn":"661070","nombre":"ATORVASTATINA NORMON 80 mg comprimidos recubiertos con pelicula , 28 comprimidos","principio_activo":"ATORVASTATINA CALCICA TRIHIDRATO","laboratorio":"NORMON S.A.","tipo_farmaco":"Medicamento Generico","pvp_iva":28.79,"menor_precio_agrupacion":28.79,"agrupacion_code":"307","agrupacion_nombre":"ATORVASTATINA 80 MG 28 COMPRIMIDOS","pvl_referencia_boe":null,"pvpiva_referencia_boe":null,"pvl_estimated":18.55,"conjunto_referencia_code":null,"conjunto_principio_activo":null,"aportacion":"NORMAL"},"660929":{"cn":"660929","nombre":"ACREL 75 mg comprimidos recubiertos con pelicula , 2 comprimidos","principio_activo":"RISEDRONATO SODIO","laboratorio":"THERAMEX  IRELAND LIMITED","tipo_farmaco":"Medicamento Etica","pvp_iva":21.26,"menor_precio_agrupacion":21.26,"agrupacion_code":"3181","agrupacion_nombre":"ACIDO RISEDRONICO  75 MG 2 COMPRIMIDOS","pvl_referencia_boe":null,"pvpiva_referencia_boe":null,"pvl_estimated":13.7,"conjunto_referencia_code":null,"conjunto_principio_activo":null,"aportacion":"NORMAL"},"680401":{"cn":"680401","nombre":"RISEDRONATO ACCORD 75 mg COMPRIMIDOS RECUBIERTOS CON PELICULA EFG , 2 comprimido","principio_activo":"RISEDRONATO SODIO","laboratorio":"ACCORD HEALTHCARE, S.L.U","tipo_farmaco":"Medicamento Generico","pvp_iva":21.26,"menor_precio_agrupacion":21.26,"agrupacion_code":"3181","agrupacion_nombre":"ACIDO RISEDRONICO  75 MG 2 COMPRIMIDOS","pvl_referencia_boe":null,"pvpiva_referencia_boe":null,"pvl_estimated":13.7,"conjunto_referencia_code":null,"conjunto_principio_activo":null,"aportacion":"NORMAL"},"713322":{"cn":"713322","nombre":"VALDOXAN 25 MG COMPRIMIDOS RECUBIERTOS CON PELICULA, 28 comprimidos","principio_activo":"AGOMELATINA","laboratorio":"DIFARMED, S.L.U","tipo_farmaco":"Medicamento Etica","pvp_iva":30.66,"menor_precio_agrupacion":30.66,"agrupacion_code":"3461","agrupacion_nombre":"AGOMELATINA 25MG 28 COMPRIMIDOS","pvl_referencia_boe":null,"pvpiva_referencia_boe":null,"pvl_estimated":19.75,"conjunto_referencia_code":null,"conjunto_principio_activo":null,"aportacion":"ESPECIAL"},"723376":{"cn":"723376","nombre":"AGOMELATINA TEVA 25 MG COMPRIMIDOS RECUBIERTOS CON PELICULA EFG, 28 comprimidos","principio_activo":"AGOMELATINA UREA","laboratorio":"TEVA PHARMA, S.L.U","tipo_farmaco":"Medicamento Generico","pvp_iva":30.66,"menor_precio_agrupacion":30.66,"agrupacion_code":"3461","agrupacion_nombre":"AGOMELATINA 25MG 28 COMPRIMIDOS","pvl_referencia_boe":null,"pvpiva_referencia_boe":null,"pvl_estimated":19.75,"conjunto_referencia_code":null,"conjunto_principio_activo":null,"aportacion":"ESPECIAL"},"675169":{"cn":"675169","nombre":"ACIDO IBANDRONICO ALACAN 150 mg COMPRIMIDOS RECUBIERTOS CON PELICULA EFG, 3 comp","principio_activo":"IBANDRONICO ACIDO","laboratorio":"ESPECIALIDADES FARMACEUTICAS CENTRUM S.A.","tipo_farmaco":"Medicamento Generico","pvp_iva":39.0,"menor_precio_agrupacion":39.0,"agrupacion_code":"3742","agrupacion_nombre":"ACIDO IBANDRONICO 150 MG 3 COMPRIMIDOS","pvl_referencia_boe":null,"pvpiva_referencia_boe":null,"pvl_estimated":25.13,"conjunto_referencia_code":null,"conjunto_principio_activo":null,"aportacion":"NORMAL"},"676082":{"cn":"676082","nombre":"ACIDO IBANDRONICO SANDOZ 150 mg COMPRIMIDOS RECUBIERTOS CON PELICULA , 3 comprim","principio_activo":"IBANDRONICO ACIDO","laboratorio":"SANDOZ FARMACEUTICA, S.A","tipo_farmaco":"Medicamento Generico","pvp_iva":39.0,"menor_precio_agrupacion":39.0,"agrupacion_code":"3742","agrupacion_nombre":"ACIDO IBANDRONICO 150 MG 3 COMPRIMIDOS","pvl_referencia_boe":null,"pvpiva_referencia_boe":null,"pvl_estimated":25.13,"conjunto_referencia_code":null,"conjunto_principio_activo":null,"aportacion":"NORMAL"},"681342":{"cn":"681342","nombre":"ACIDO ACETILSALICILICO CINFA 100 mg comprimidos gastrorresistentes , 30 comprimi","principio_activo":"ACETILSALICILICO ACIDO","laboratorio":"CINFA S.A.","tipo_farmaco":"Medicamento Generico","pvp_iva":1.45,"menor_precio_agrupacion":1.45,"agrupacion_code":"36","agrupacion_nombre":"ACIDO ACETILSALICILICO 100 MG 30 COMPRIMIDOS ENTERICOS/GASTRORRESISTENTES","pvl_referencia_boe":null,"pvpiva_referencia_boe":null,"pvl_estimated":0.93,"conjunto_referencia_code":null,"conjunto_principio_activo":null,"aportacion":"NORMAL"},"692274":{"cn":"692274","nombre":"ACIDO ACETILSALICILICO KERN PHARMA 100 MG COMPRIMIDOS GASTRORRESISTENTES , 30 co","principio_activo":"ACETILSALICILICO ACIDO","laboratorio":"KERN PHARMA, S.L.","tipo_farmaco":"Medicamento Generico","pvp_iva":1.45,"menor_precio_agrupacion":1.45,"agrupacion_code":"36","agrupacion_nombre":"ACIDO ACETILSALICILICO 100 MG 30 COMPRIMIDOS ENTERICOS/GASTRORRESISTENTES","pvl_referencia_boe":null,"pvpiva_referencia_boe":null,"pvl_estimated":0.93,"conjunto_referencia_code":null,"conjunto_principio_activo":null,"aportacion":"NORMAL"},"693493":{"cn":"693493","nombre":"AMOXICILINA/ACIDO CLAVULANICO NORMON 500 mg/125 mg POLVO PARA SUSPENSION ORAL EN","principio_activo":"CLAVULANATO POTASIO,AMOXICILINA TRIHIDRATO","laboratorio":"NORMON S.A.","tipo_farmaco":"Medicamento Generico","pvp_iva":8.18,"menor_precio_agrupacion":8.18,"agrupacion_code":"3889","agrupacion_nombre":"AMOXICILINA/ AC CLAVULANICO 500MG/125MG 30 SOBRES SOLUCION/SUSPENSION ORAL","pvl_referencia_boe":null,"pvpiva_referencia_boe":null,"pvl_estimated":5.27,"conjunto_referencia_code":null,"conjunto_principio_activo":null,"aportacion":"NORMAL"},"694697":{"cn":"694697","nombre":"AMOXICILINA/ACIDO CLAVULANICO ARDINECLAV  500/125 mg POLVO PARA SUSPENSION ORAL ","principio_activo":"AMOXICILINA TRIHIDRATO,CLAVULANATO POTASIO","laboratorio":"REIG JOFRE S.A.","tipo_farmaco":"Medicamento Generico","pvp_iva":8.18,"menor_precio_agrupacion":8.18,"agrupacion_code":"3889","agrupacion_nombre":"AMOXICILINA/ AC CLAVULANICO 500MG/125MG 30 SOBRES SOLUCION/SUSPENSION ORAL","pvl_referencia_boe":null,"pvpiva_referencia_boe":null,"pvl_estimated":5.27,"conjunto_referencia_code":null,"conjunto_principio_activo":null,"aportacion":"NORMAL"},"694755":{"cn":"694755","nombre":"AMOXICILINA/ACIDO CLAVULANICO CINFA 500 mg /125 mg POLVO PARA SUSPENSION ORAL EN","principio_activo":"AMOXICILINA TRIHIDRATO,CLAVULANICO ACIDO","laboratorio":"CINFA S.A.","tipo_farmaco":"Medicamento Generico","pvp_iva":8.18,"menor_precio_agrupacion":8.18,"agrupacion_code":"3889","agrupacion_nombre":"AMOXICILINA/ AC CLAVULANICO 500MG/125MG 30 SOBRES SOLUCION/SUSPENSION ORAL","pvl_referencia_boe":null,"pvpiva_referencia_boe":null,"pvl_estimated":5.27,"conjunto_referencia_code":null,"conjunto_principio_activo":null,"aportacion":"NORMAL"},"693494":{"cn":"693494","nombre":"AMOXICILINA/ACIDO CLAVULANICO NORMON 875 mg/125 mg POLVO PARA SUSPESION ORAL EN ","principio_activo":"AMOXICILINA TRIHIDRATO,CLAVULANICO ACIDO","laboratorio":"NORMON S.A.","tipo_farmaco":"Medicamento Generico","pvp_iva":14.3,"menor_precio_agrupacion":14.3,"agrupacion_code":"3891","agrupacion_nombre":"AMOXICILINA/ AC CLAVULANICO 875MG/125MG 30 SOBRES SOLUCION/SUSPENSION ORAL","pvl_referencia_boe":null,"pvpiva_referencia_boe":null,"pvl_estimated":9.21,"conjunto_referencia_code":null,"conjunto_principio_activo":null,"aportacion":"NORMAL"},"694700":{"cn":"694700","nombre":"AMOXICILINA/ACIDO CLAVULANICO ARDINECLAV  875/125 mg POLVO PARA SUSPENSION ORAL ","principio_activo":"AMOXICILINA TRIHIDRATO,CLAVULANATO POTASIO","laboratorio":"REIG JOFRE S.A.","tipo_farmaco":"Medicamento Generico","pvp_iva":14.3,"menor_precio_agrupacion":14.3,"agrupacion_code":"3891","agrupacion_nombre":"AMOXICILINA/ AC CLAVULANICO 875MG/125MG 30 SOBRES SOLUCION/SUSPENSION ORAL","pvl_referencia_boe":null,"pvpiva_referencia_boe":null,"pvl_estimated":9.21,"conjunto_referencia_code":null,"conjunto_principio_activo":null,"aportacion":"NORMAL"},"694757":{"cn":"694757","nombre":"AMOXICILINA/ACIDO CLAVULANICO CINFA 875 mg/125 mg POLVO PARA SUSPENSION ORAL EN ","principio_activo":"CLAVULANICO ACIDO,AMOXICILINA","laboratorio":"CINFA S.A.","tipo_farmaco":"Medicamento Generico","pvp_iva":14.3,"menor_precio_agrupacion":14.3,"agrupacion_code":"3891","agrupacion_nombre":"AMOXICILINA/ AC CLAVULANICO 875MG/125MG 30 SOBRES SOLUCION/SUSPENSION ORAL","pvl_referencia_boe":null,"pvpiva_referencia_boe":null,"pvl_estimated":9.21,"conjunto_referencia_code":null,"conjunto_principio_activo":null,"aportacion":"NORMAL"},"693495":{"cn":"693495","nombre":"AMOXICILINA/ACIDO CLAVULANICO NORMON 875 mg/125 mg POLVO PARA SUSPESION ORAL EN ","principio_activo":"AMOXICILINA TRIHIDRATO,CLAVULANICO ACIDO","laboratorio":"NORMON S.A.","tipo_farmaco":"Medicamento Generico","pvp_iva":9.52,"menor_precio_agrupacion":9.52,"agrupacion_code":"3890","agrupacion_nombre":"AMOXICILINA/ AC CLAVULANICO 875MG/125MG 20 SOBRES SOLUCION/SUSPENSION ORAL","pvl_referencia_boe":null,"pvpiva_referencia_boe":null,"pvl_estimated":6.13,"conjunto_referencia_code":null,"conjunto_principio_activo":null,"aportacion":"NORMAL"},"694699":{"cn":"694699","nombre":"AMOXICILINA/ACIDO CLAVULANICO ARDINECLAV  875/125 mg POLVO PARA SUSPENSION ORAL ","principio_activo":"AMOXICILINA TRIHIDRATO,CLAVULANATO POTASIO","laboratorio":"REIG JOFRE S.A.","tipo_farmaco":"Medicamento Generico","pvp_iva":9.52,"menor_precio_agrupacion":9.52,"agrupacion_code":"3890","agrupacion_nombre":"AMOXICILINA/ AC CLAVULANICO 875MG/125MG 20 SOBRES SOLUCION/SUSPENSION ORAL","pvl_referencia_boe":null,"pvpiva_referencia_boe":null,"pvl_estimated":6.13,"conjunto_referencia_code":null,"conjunto_principio_activo":null,"aportacion":"NORMAL"},"694756":{"cn":"694756","nombre":"AMOXICILINA/ACIDO CLAVULANICO CINFA 875 mg/125 mg POLVO PARA SUSPENSION ORAL EN ","principio_activo":"AMOXICILINA,CLAVULANICO ACIDO","laboratorio":"CINFA S.A.","tipo_farmaco":"Medicamento Generico","pvp_iva":9.52,"menor_precio_agrupacion":9.52,"agrupacion_code":"3890","agrupacion_nombre":"AMOXICILINA/ AC CLAVULANICO 875MG/125MG 20 SOBRES SOLUCION/SUSPENSION ORAL","pvl_referencia_boe":null,"pvpiva_referencia_boe":null,"pvl_estimated":6.13,"conjunto_referencia_code":null,"conjunto_principio_activo":null,"aportacion":"NORMAL"},"695933":{"cn":"695933","nombre":"AMOXICILINA/ACIDO CLAVULANICO ARISTO 500/125 mg COMPRIMIDOS RECUBIERTOS CON PELI","principio_activo":"AMOXICILINA,CLAVULANICO ACIDO","laboratorio":"ARISTO PHARMA IBERIA, S.L.","tipo_farmaco":"Medicamento Generico","pvp_iva":5.84,"menor_precio_agrupacion":8.18,"agrupacion_code":"3873","agrupacion_nombre":"AMOXICILINA/ AC CLAVULANICO 500MG/125MG 30 COMPRIMIDOS","pvl_referencia_boe":null,"pvpiva_referencia_boe":null,"pvl_estimated":3.76,"conjunto_referencia_code":null,"conjunto_principio_activo":null,"aportacion":"NORMAL"},"696811":{"cn":"696811","nombre":"AMOXICILINA /ACIDO CLAVULANICO RATIOPHARM 500/125 COMPRIMIDOS RECUBIERTOS CON PE","principio_activo":"AMOXICILINA TRIHIDRATO,CLAVULANATO POTASIO","laboratorio":"TEVA PHARMA, S.L.U","tipo_farmaco":"Medicamento Generico","pvp_iva":5.84,"menor_precio_agrupacion":8.18,"agrupacion_code":"3873","agrupacion_nombre":"AMOXICILINA/ AC CLAVULANICO 500MG/125MG 30 COMPRIMIDOS","pvl_referencia_boe":null,"pvpiva_referencia_boe":null,"pvl_estimated":3.76,"conjunto_referencia_code":null,"conjunto_principio_activo":null,"aportacion":"NORMAL"},"697568":{"cn":"697568","nombre":"AMOXICILINA-ACIDO CLAVULANICO RANBAXY 500/125 mg COMPRIMIDOS RECUBIERTOS EFG , 3","principio_activo":"AMOXICILINA TRIHIDRATO,CLAVULANATO POTASIO","laboratorio":"SUN PHARMA LABORATORIOS, S.L","tipo_farmaco":"Medicamento Generico","pvp_iva":5.84,"menor_precio_agrupacion":8.18,"agrupacion_code":"3873","agrupacion_nombre":"AMOXICILINA/ AC CLAVULANICO 500MG/125MG 30 COMPRIMIDOS","pvl_referencia_boe":null,"pvpiva_referencia_boe":null,"pvl_estimated":3.76,"conjunto_referencia_code":null,"conjunto_principio_activo":null,"aportacion":"NORMAL"},"695017":{"cn":"695017","nombre":"AMOXICILINA/ACIDO CLAVULANICO ARISTO 875/125 mg COMPRIMIDOS RECUBIERTOS CON PELI","principio_activo":"AMOXICILINA,CLAVULANICO ACIDO","laboratorio":"ARISTO PHARMA IBERIA, S.L.","tipo_farmaco":"Medicamento Generico","pvp_iva":10.21,"menor_precio_agrupacion":14.3,"agrupacion_code":"3888","agrupacion_nombre":"AMOXICILINA/ AC CLAVULANICO 875MG/125MG 30 COMPRIMIDOS","pvl_referencia_boe":null,"pvpiva_referencia_boe":null,"pvl_estimated":6.58,"conjunto_referencia_code":null,"conjunto_principio_activo":null,"aportacion":"NORMAL"},"695354":{"cn":"695354","nombre":"AMOXICILINA/ ACIDO CLAVULANICO APOTEX 875 mg/ 125 mg COMPRIMIDOS RECUBIERTOS CON","principio_activo":"CLAVULANATO POTASIO,AMOXICILINA TRIHIDRATO","laboratorio":"APOTEX ESPAÑA, S.L","tipo_farmaco":"Medicamento Generico","pvp_iva":10.21,"menor_precio_agrupacion":14.3,"agrupacion_code":"3888","agrupacion_nombre":"AMOXICILINA/ AC CLAVULANICO 875MG/125MG 30 COMPRIMIDOS","pvl_referencia_boe":null,"pvpiva_referencia_boe":null,"pvl_estimated":6.58,"conjunto_referencia_code":null,"conjunto_principio_activo":null,"aportacion":"NORMAL"},"695574":{"cn":"695574","nombre":"AMOXICILINA/ACIDO CLAVULANICO RATIOPHARM 875/125 mg COMPRIMIDOS RECUBIERTOS CON ","principio_activo":"CLAVULANATO POTASIO,AMOXICILINA TRIHIDRATO","laboratorio":"TEVA PHARMA, S.L.U","tipo_farmaco":"Medicamento Generico","pvp_iva":10.21,"menor_precio_agrupacion":14.3,"agrupacion_code":"3888","agrupacion_nombre":"AMOXICILINA/ AC CLAVULANICO 875MG/125MG 30 COMPRIMIDOS","pvl_referencia_boe":null,"pvpiva_referencia_boe":null,"pvl_estimated":6.58,"conjunto_referencia_code":null,"conjunto_principio_activo":null,"aportacion":"NORMAL"},"695352":{"cn":"695352","nombre":"AMOXICILINA/ ACIDO CLAVULANICO APOTEX 875 mg/ 125 mg COMPRIMIDOS RECUBIERTOS CON","principio_activo":"CLAVULANATO POTASIO,AMOXICILINA TRIHIDRATO","laboratorio":"APOTEX ESPAÑA, S.L","tipo_farmaco":"Medicamento Generico","pvp_iva":6.81,"menor_precio_agrupacion":9.52,"agrupacion_code":"3887","agrupacion_nombre":"AMOXICILINA/ AC CLAVULANICO 875MG/125MG 20 COMPRIMIDOS","pvl_referencia_boe":null,"pvpiva_referencia_boe":null,"pvl_estimated":4.39,"conjunto_referencia_code":null,"conjunto_principio_activo":null,"aportacion":"NORMAL"},"695575":{"cn":"695575","nombre":"AMOXICILINA/ACIDO CLAVULANICO RATIOPHARM 875/125 mg COMPRIMIDOS RECUBIERTOS CON ","principio_activo":"AMOXICILINA TRIHIDRATO,CLAVULANATO POTASIO","laboratorio":"TEVA PHARMA, S.L.U","tipo_farmaco":"Medicamento Generico","pvp_iva":6.81,"menor_precio_agrupacion":9.52,"agrupacion_code":"3887","agrupacion_nombre":"AMOXICILINA/ AC CLAVULANICO 875MG/125MG 20 COMPRIMIDOS","pvl_referencia_boe":null,"pvpiva_referencia_boe":null,"pvl_estimated":4.39,"conjunto_referencia_code":null,"conjunto_principio_activo":null,"aportacion":"NORMAL"},"695655":{"cn":"695655","nombre":"AMOXICILINA/ACIDO CLAVULANICO AUROVITAS PHARMA 875 mg / 125  mg COMPRIMIDOS RECU","principio_activo":"AMOXICILINA TRIHIDRATO,CLAVULANATO POTASIO","laboratorio":"AUROVITAS SPAIN, S.A.U","tipo_farmaco":"Medicamento Generico","pvp_iva":6.81,"menor_precio_agrupacion":9.52,"agrupacion_code":"3887","agrupacion_nombre":"AMOXICILINA/ AC CLAVULANICO 875MG/125MG 20 COMPRIMIDOS","pvl_referencia_boe":null,"pvpiva_referencia_boe":null,"pvl_estimated":4.39,"conjunto_referencia_code":null,"conjunto_principio_activo":null,"aportacion":"NORMAL"},"694707":{"cn":"694707","nombre":"AMOXICILINA PENSA 1 g COMPRIMIDOS RECUBIERTOS EFG, 20 comprimidos","principio_activo":"AMOXICILINA TRIHIDRATO","laboratorio":"TOWA PHARMACEUTICAL, S.A.","tipo_farmaco":"Medicamento Generico","pvp_iva":3.81,"menor_precio_agrupacion":5.34,"agrupacion_code":"3864","agrupacion_nombre":"AMOXICILINA 1000 MG 20 COMPRIMIDOS","pvl_referencia_boe":null,"pvpiva_referencia_boe":null,"pvl_estimated":2.45,"conjunto_referencia_code":null,"conjunto_principio_activo":null,"aportacion":"NORMAL"},"695322":{"cn":"695322","nombre":"AMOXICILINA BENEL 1 g COMPRIMIDOS EFG, 20 comprimidos","principio_activo":"AMOXICILINA TRIHIDRATO","laboratorio":"DERMOGEN FARMA, S.A","tipo_farmaco":"Medicamento Generico","pvp_iva":3.81,"menor_precio_agrupacion":5.34,"agrupacion_code":"3864","agrupacion_nombre":"AMOXICILINA 1000 MG 20 COMPRIMIDOS","pvl_referencia_boe":null,"pvpiva_referencia_boe":null,"pvl_estimated":2.45,"conjunto_referencia_code":null,"conjunto_principio_activo":null,"aportacion":"NORMAL"},"695572":{"cn":"695572","nombre":"AMOXICILINA RATIOPHARM 1000 mg  COMPRIMIDOS RECUBIERTOS EFG, 20 comprimidos","principio_activo":"AMOXICILINA TRIHIDRATO","laboratorio":"TEVA PHARMA, S.L.U","tipo_farmaco":"Medicamento Generico","pvp_iva":3.81,"menor_precio_agrupacion":5.34,"agrupacion_code":"3864","agrupacion_nombre":"AMOXICILINA 1000 MG 20 COMPRIMIDOS","pvl_referencia_boe":null,"pvpiva_referencia_boe":null,"pvl_estimated":2.45,"conjunto_referencia_code":null,"conjunto_principio_activo":null,"aportacion":"NORMAL"},"694708":{"cn":"694708","nombre":"AMOXICILINA PENSA 1 g COMPRIMIDOS RECUBIERTOS EFG, 30 comprimidos","principio_activo":"AMOXICILINA TRIHIDRATO","laboratorio":"TOWA PHARMACEUTICAL, S.A.","tipo_farmaco":"Medicamento Generico","pvp_iva":5.71,"menor_precio_agrupacion":7.99,"agrupacion_code":"3865","agrupacion_nombre":"AMOXICILINA 1000 MG 30 COMPRIMIDOS","pvl_referencia_boe":null,"pvpiva_referencia_boe":null,"pvl_estimated":3.68,"conjunto_referencia_code":null,"conjunto_principio_activo":null,"aportacion":"NORMAL"},"695573":{"cn":"695573","nombre":"AMOXICILINA RATIOPHARM 1000 mg  COMPRIMIDOS RECUBIERTOS EFG, 30 comprimidos","principio_activo":"AMOXICILINA TRIHIDRATO","laboratorio":"TEVA PHARMA, S.L.U","tipo_farmaco":"Medicamento Generico","pvp_iva":5.71,"menor_precio_agrupacion":7.99,"agrupacion_code":"3865","agrupacion_nombre":"AMOXICILINA 1000 MG 30 COMPRIMIDOS","pvl_referencia_boe":null,"pvpiva_referencia_boe":null,"pvl_estimated":3.68,"conjunto_referencia_code":null,"conjunto_principio_activo":null,"aportacion":"NORMAL"},"729239":{"cn":"729239","nombre":"AMOXICILINA SUN 1000 MG COMPRIMIDOS DISPERSABLES EFG, 30 comprimidos","principio_activo":"AMOXICILINA TRIHIDRATO","laboratorio":"SUN PHARMA LABORATORIOS, S.L","tipo_farmaco":"Medicamento Generico","pvp_iva":5.71,"menor_precio_agrupacion":7.99,"agrupacion_code":"3865","agrupacion_nombre":"AMOXICILINA 1000 MG 30 COMPRIMIDOS","pvl_referencia_boe":null,"pvpiva_referencia_boe":null,"pvl_estimated":3.68,"conjunto_referencia_code":null,"conjunto_principio_activo":null,"aportacion":"NORMAL"},"694705":{"cn":"694705","nombre":"AMOXICILINA PENSA 500 mg CAPSULAS EFG, 20 capsulas","principio_activo":"AMOXICILINA TRIHIDRATO","laboratorio":"TOWA PHARMACEUTICAL, S.A.","tipo_farmaco":"Medicamento Generico","pvp_iva":2.5,"menor_precio_agrupacion":3.5,"agrupacion_code":"3868","agrupacion_nombre":"AMOXICILINA 500 MG 20 CAPSULAS","pvl_referencia_boe":null,"pvpiva_referencia_boe":null,"pvl_estimated":1.61,"conjunto_referencia_code":null,"conjunto_principio_activo":null,"aportacion":"NORMAL"},"694872":{"cn":"694872","nombre":"AMOXICILINA KERN PHARMA 500 mg CAPSULAS EFG, 20 capsulas","principio_activo":"AMOXICILINA TRIHIDRATO","laboratorio":"KERN PHARMA, S.L.","tipo_farmaco":"Medicamento Generico","pvp_iva":2.5,"menor_precio_agrupacion":3.5,"agrupacion_code":"3868","agrupacion_nombre":"AMOXICILINA 500 MG 20 CAPSULAS","pvl_referencia_boe":null,"pvpiva_referencia_boe":null,"pvl_estimated":1.61,"conjunto_referencia_code":null,"conjunto_principio_activo":null,"aportacion":"NORMAL"},"695010":{"cn":"695010","nombre":"AMOXICILINA ARISTO 500 mg CAPSULAS EFG , 20 capsulas","principio_activo":"AMOXICILINA TRIHIDRATO","laboratorio":"ARISTO PHARMA IBERIA, S.L.","tipo_farmaco":"Medicamento Generico","pvp_iva":2.5,"menor_precio_agrupacion":3.5,"agrupacion_code":"3868","agrupacion_nombre":"AMOXICILINA 500 MG 20 CAPSULAS","pvl_referencia_boe":null,"pvpiva_referencia_boe":null,"pvl_estimated":1.61,"conjunto_referencia_code":null,"conjunto_principio_activo":null,"aportacion":"NORMAL"},"694706":{"cn":"694706","nombre":"AMOXICILINA PENSA 500 mg CAPSULAS EFG, 30 capsulas","principio_activo":"AMOXICILINA TRIHIDRATO","laboratorio":"TOWA PHARMACEUTICAL, S.A.","tipo_farmaco":"Medicamento Generico","pvp_iva":2.86,"menor_precio_agrupacion":4.0,"agrupacion_code":"3869","agrupacion_nombre":"AMOXICILINA 500 MG 30 CAPSULAS","pvl_referencia_boe":null,"pvpiva_referencia_boe":null,"pvl_estimated":1.84,"conjunto_referencia_code":null,"conjunto_principio_activo":null,"aportacion":"NORMAL"},"694873":{"cn":"694873","nombre":"AMOXICILINA KERN PHARMA 500 mg CAPSULAS EFG, 30 capsulas","principio_activo":"AMOXICILINA TRIHIDRATO","laboratorio":"KERN PHARMA, S.L.","tipo_farmaco":"Medicamento Generico","pvp_iva":2.86,"menor_precio_agrupacion":4.0,"agrupacion_code":"3869","agrupacion_nombre":"AMOXICILINA 500 MG 30 CAPSULAS","pvl_referencia_boe":null,"pvpiva_referencia_boe":null,"pvl_estimated":1.84,"conjunto_referencia_code":null,"conjunto_principio_activo":null,"aportacion":"NORMAL"},"695011":{"cn":"695011","nombre":"AMOXICILINA ARISTO 500 mg CAPSULAS EFG , 30 capsulas","principio_activo":"AMOXICILINA TRIHIDRATO","laboratorio":"ARISTO PHARMA IBERIA, S.L.","tipo_farmaco":"Medicamento Generico","pvp_iva":2.86,"menor_precio_agrupacion":4.0,"agrupacion_code":"3869","agrupacion_nombre":"AMOXICILINA 500 MG 30 CAPSULAS","pvl_referencia_boe":null,"pvpiva_referencia_boe":null,"pvl_estimated":1.84,"conjunto_referencia_code":null,"conjunto_principio_activo":null,"aportacion":"NORMAL"},"706739":{"cn":"706739","nombre":"ATENOLOL CINFA 50MG 60 COMPRIMIDOS EFG","principio_activo":"ATENOLOL","laboratorio":"CINFA S.A.","tipo_farmaco":"Medicamento Generico","pvp_iva":2.5,"menor_precio_agrupacion":2.5,"agrupacion_code":"3207","agrupacion_nombre":"ATENOLOL 50 MG 60 COMPRIMIDOS","pvl_referencia_boe":null,"pvpiva_referencia_boe":null,"pvl_estimated":1.61,"conjunto_referencia_code":null,"conjunto_principio_activo":null,"aportacion":"ESPECIAL"},"706838":{"cn":"706838","nombre":"ATENOLOL ARISTO 50 mg EFG , 60 comprimidos","principio_activo":"ATENOLOL","laboratorio":"ARISTO PHARMA IBERIA, S.L.","tipo_farmaco":"Medicamento Generico","pvp_iva":2.5,"menor_precio_agrupacion":2.5,"agrupacion_code":"3207","agrupacion_nombre":"ATENOLOL 50 MG 60 COMPRIMIDOS","pvl_referencia_boe":null,"pvpiva_referencia_boe":null,"pvl_estimated":1.61,"conjunto_referencia_code":null,"conjunto_principio_activo":null,"aportacion":"ESPECIAL"},"703999":{"cn":"703999","nombre":"ABIK 5 MG COMPRIMIDOS EFG , 28 comprimidos","principio_activo":"ARIPIPRAZOL","laboratorio":"KERN PHARMA, S.L.","tipo_farmaco":"Medicamento Generico","pvp_iva":23.59,"menor_precio_agrupacion":23.59,"agrupacion_code":"281","agrupacion_nombre":"ARIPIPRAZOL 5 MG 28 COMPRIMIDOS","pvl_referencia_boe":null,"pvpiva_referencia_boe":null,"pvl_estimated":15.2,"conjunto_referencia_code":null,"conjunto_principio_activo":null,"aportacion":"ESPECIAL"},"704605":{"cn":"704605","nombre":"ARIPIPRAZOL CINFA 5 MG COMPRIMIDOS EFG , 28 comprimidos","principio_activo":"ARIPIPRAZOL","laboratorio":"CINFA S.A.","tipo_farmaco":"Medicamento Generico","pvp_iva":23.59,"menor_precio_agrupacion":23.59,"agrupacion_code":"281","agrupacion_nombre":"ARIPIPRAZOL 5 MG 28 COMPRIMIDOS","pvl_referencia_boe":null,"pvpiva_referencia_boe":null,"pvl_estimated":15.2,"conjunto_referencia_code":null,"conjunto_principio_activo":null,"aportacion":"ESPECIAL"},"704761":{"cn":"704761","nombre":"ARIPIPRAZOL QUALIGEN 5 MG COMPRIMIDOS EFG , 28 COMPRIMIDOS","principio_activo":"ARIPIPRAZOL","laboratorio":"NEURAXPHARM SPAIN, S.L.U","tipo_farmaco":"Medicamento Generico","pvp_iva":23.59,"menor_precio_agrupacion":23.59,"agrupacion_code":"281","agrupacion_nombre":"ARIPIPRAZOL 5 MG 28 COMPRIMIDOS","pvl_referencia_boe":null,"pvpiva_referencia_boe":null,"pvl_estimated":15.2,"conjunto_referencia_code":null,"conjunto_principio_activo":null,"aportacion":"ESPECIAL"},"704002":{"cn":"704002","nombre":"ABIK 30 MG COMPRIMIDOS EFG , 28 comprimidos","principio_activo":"ARIPIPRAZOL","laboratorio":"KERN PHARMA, S.L.","tipo_farmaco":"Medicamento Generico","pvp_iva":141.51,"menor_precio_agrupacion":141.51,"agrupacion_code":"4021","agrupacion_nombre":"ARIPIPRAZOL 30 MG 28 COMPRIMIDOS","pvl_referencia_boe":null,"pvpiva_referencia_boe":null,"pvl_estimated":91.18,"conjunto_referencia_code":null,"conjunto_principio_activo":null,"aportacion":"ESPECIAL"},"704961":{"cn":"704961","nombre":"ARIZOL 30 MG COMPRIMIDOS EFG , 28 comprimidos","principio_activo":"ARIPIPRAZOL","laboratorio":"NEURAXPHARM SPAIN, S.L.U","tipo_farmaco":"Medicamento Generico","pvp_iva":141.51,"menor_precio_agrupacion":141.51,"agrupacion_code":"4021","agrupacion_nombre":"ARIPIPRAZOL 30 MG 28 COMPRIMIDOS","pvl_referencia_boe":null,"pvpiva_referencia_boe":null,"pvl_estimated":91.18,"conjunto_referencia_code":null,"conjunto_principio_activo":null,"aportacion":"ESPECIAL"},"705603":{"cn":"705603","nombre":"ARIPIPRAZOL TAD 30 MG COMPRIMIDOS EFG , 28 comprimidos","principio_activo":"ARIPIPRAZOL","laboratorio":"KRKA FARMACEUTICA, S.L.","tipo_farmaco":"Medicamento Generico","pvp_iva":141.51,"menor_precio_agrupacion":141.51,"agrupacion_code":"4021","agrupacion_nombre":"ARIPIPRAZOL 30 MG 28 COMPRIMIDOS","pvl_referencia_boe":null,"pvpiva_referencia_boe":null,"pvl_estimated":91.18,"conjunto_referencia_code":null,"conjunto_principio_activo":null,"aportacion":"ESPECIAL"},"728052":{"cn":"728052","nombre":"AGOMELATINA TEVA 25 MG COMPRIMIDOS RECUBIERTOS CON PELICULA EFG, 56 comprimidos","principio_activo":"AGOMELATINA UREA","laboratorio":"TEVA PHARMA, S.L.U","tipo_farmaco":"Medicamento Generico","pvp_iva":61.3,"menor_precio_agrupacion":null,"agrupacion_code":"4175","agrupacion_nombre":"AGOMELATINA 25MG 56 COMPRIMIDOS","pvl_referencia_boe":null,"pvpiva_referencia_boe":null,"pvl_estimated":39.5,"conjunto_referencia_code":null,"conjunto_principio_activo":null,"aportacion":"ESPECIAL"},"728053":{"cn":"728053","nombre":"AGOMELATINA RATIOPHARM 25 MG COMPRIMIDOS RECUBIERTOS CON PELICULA EFG, 56 compri","principio_activo":"AGOMELATINA UREA","laboratorio":"TEVA PHARMA, S.L.U","tipo_farmaco":"Medicamento Generico","pvp_iva":61.3,"menor_precio_agrupacion":null,"agrupacion_code":"4175","agrupacion_nombre":"AGOMELATINA 25MG 56 COMPRIMIDOS","pvl_referencia_boe":null,"pvpiva_referencia_boe":null,"pvl_estimated":39.5,"conjunto_referencia_code":null,"conjunto_principio_activo":null,"aportacion":"ESPECIAL"}};
+
+// ============================================================
+// SAMPLE INVOICE (pre-populated, fully editable)
+// ============================================================
+let invoice = [
+  { cn: "650005", qty: 2, unit: 8.50, total: 17.00 },   // DEPAKINE - PVL violation
+  { cn: "651068", qty: 5, unit: 2.31, total: 11.55 },   // ATORVASTATINA CINFA - clean
+  { cn: "650789", qty: 3, unit: 1.60, total: 4.80 },    // AMLODIPINO - clean
+  { cn: "650228", qty: 2, unit: 34.00, total: 72.00 },  // ACICLOVIR - math error
+  { cn: "662020", qty: 1, unit: 19.64, total: 19.64 },  // VALDOXAN - clean
+  { cn: "651619", qty: 4, unit: 3.50, total: 14.00 },   // ALPRAZOLAM - PVL violation
+  { cn: "667451", qty: 2, unit: 9.22, total: 18.44 },   // PREVENCOR - branded
+  { cn: "651076", qty: 3, unit: 4.61, total: 13.83 },   // ATORVA 20mg - clean
+];
+
+// ============================================================
+// FORMATTING
+// ============================================================
+function eur(n) {
+  if (n == null || isNaN(n)) return "—";
+  return "€" + Number(n).toFixed(2).replace(".", ",").replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+}
+function pct(n) {
+  return (n * 100).toFixed(1).replace(".", ",") + "%";
+}
+
+// ============================================================
+// DETECTION ENGINE - 5 checks
+// ============================================================
+const PHARM_MARGIN = 0.279;
+const DIST_MARGIN = 0.076;
+const IVA_REIMB = 0.04;
+const PVL_TOLERANCE = 0.01;   // 1% rounding allowance for BOE PVL
+const EST_TOLERANCE = 0.05;   // 5% allowance for derived PVL
+
+function derivePVL(pvpiva) {
+  if (!pvpiva) return null;
+  const pvp = pvpiva / (1 + IVA_REIMB);
+  const pvf = pvp * (1 - PHARM_MARGIN);
+  return pvf / (1 + DIST_MARGIN);
+}
+
+function findCheaperAlternative(med) {
+  if (!med || !med.agrupacion_code) return null;
+  let cheapest = null;
+  for (const cn in DB) {
+    const e = DB[cn];
+    if (e.agrupacion_code === med.agrupacion_code && cn !== med.cn && e.pvp_iva) {
+      if (!cheapest || e.pvp_iva < cheapest.pvp_iva) {
+        cheapest = e;
+      }
+    }
+  }
+  if (cheapest && cheapest.pvp_iva < (med.pvp_iva || 999)) return cheapest;
+  return null;
+}
+
+function checkInvoice(invoice) {
+  const findings = [];
+  
+  invoice.forEach((line, idx) => {
+    const lineNum = idx + 1;
+    const med = DB[line.cn];
+    
+    if (!med) {
+      findings.push({
+        severity: "info",
+        title: "CN no reconocido",
+        body: `<span class="finding-line-ref">L${lineNum}</span>El código nacional <strong>${line.cn}</strong> no figura en el Nomenclátor cargado. Verificar manualmente.`,
+        impact: 0,
+        lineIdx: idx,
+        cite: ""
+      });
+      return;
+    }
+    
+    const nombre = med.nombre || "?";
+    
+    // CHECK 1: Math error
+    const expected = Math.round(line.qty * line.unit * 100) / 100;
+    if (Math.abs(line.total - expected) > 0.01) {
+      const diff = line.total - expected;
+      findings.push({
+        severity: "high",
+        title: "Error aritmético en línea",
+        body: `<span class="finding-line-ref">L${lineNum}</span><strong>${nombre.slice(0, 50)}</strong>: ${line.qty} × ${eur(line.unit)} = ${eur(expected)}, pero la factura indica ${eur(line.total)}. Diferencia: <strong>${eur(diff)}</strong> ${diff > 0 ? 'a favor del distribuidor' : 'a tu favor'}.`,
+        impact: diff,
+        lineIdx: idx,
+        cite: ""
+      });
+    }
+    
+    // CHECK 2: Above PVL Referencia (illegal)
+    const pvlRef = med.pvl_referencia_boe;
+    if (pvlRef && line.unit > pvlRef * (1 + PVL_TOLERANCE)) {
+      const overUnit = line.unit - pvlRef;
+      const overTotal = overUnit * line.qty;
+      findings.push({
+        severity: "high",
+        title: "Sobrecarga sobre PVL Referencia (ilegal)",
+        body: `<span class="finding-line-ref">L${lineNum}</span><strong>${nombre.slice(0, 50)}</strong>: precio facturado ${eur(line.unit)} supera el PVL Industrial de Referencia <strong>${eur(pvlRef)}</strong>. Sobrecarga: ${eur(overUnit)}/u × ${line.qty} = <strong>${eur(overTotal)}</strong>. El PVL Referencia tiene carácter de máximo según el Art. 2.2 del RD 177/2014.`,
+        impact: overTotal,
+        lineIdx: idx,
+        cite: "Fuente: BOE-A-2025-20356, Art. 2.2 RD 177/2014"
+      });
+    }
+    
+    // CHECK 3: Above derived PVL when no BOE Ref available
+    if (!pvlRef && med.pvp_iva) {
+      const pvlEst = med.pvl_estimated || derivePVL(med.pvp_iva);
+      if (pvlEst && line.unit > pvlEst * (1 + EST_TOLERANCE)) {
+        const overUnit = line.unit - pvlEst;
+        const overTotal = overUnit * line.qty;
+        findings.push({
+          severity: "medium",
+          title: "Sobrecarga sospechosa (PVL estimado)",
+          body: `<span class="finding-line-ref">L${lineNum}</span><strong>${nombre.slice(0, 50)}</strong>: precio ${eur(line.unit)} supera el PVL estimado ${eur(pvlEst)} (calculado vía márgenes RD 823/2008). Posible sobrecarga: <strong>${eur(overTotal)}</strong>. Verificar contrato comercial.`,
+          impact: overTotal,
+          lineIdx: idx,
+          cite: "Fuente: RD 823/2008, márgenes regulados"
+        });
+      }
+    }
+    
+    // CHECK 4: Branded medication when generic available
+    if (med.tipo_farmaco && (med.tipo_farmaco.includes("Etica") || (med.principio_activo && !nombre.toUpperCase().includes("EFG")))) {
+      const cheaper = findCheaperAlternative(med);
+      if (cheaper && med.pvp_iva) {
+        const savingsUnit = med.pvp_iva - cheaper.pvp_iva;
+        const savingsTotal = savingsUnit * line.qty;
+        if (savingsTotal > 0.50) {
+          findings.push({
+            severity: "low",
+            title: "Oportunidad: genérico equivalente más económico",
+            body: `<span class="finding-line-ref">L${lineNum}</span><strong>${nombre.slice(0, 50)}</strong>: existe ${cheaper.nombre.slice(0, 45)} (${cheaper.laboratorio || '?'}) a ${eur(cheaper.pvp_iva)} en la misma agrupación homogénea. Ahorro potencial: <strong>${eur(savingsTotal)}</strong>.`,
+            impact: savingsTotal,
+            lineIdx: idx,
+            cite: "Agrupación homogénea: " + (med.agrupacion_nombre || med.agrupacion_code)
+          });
+        }
+      }
+    }
+  });
+  
+  return findings;
+}
+
+// ============================================================
+// RENDERING
+// ============================================================
+function renderInvoice() {
+  const table = document.getElementById("invoice-table");
+  // Remove old rows (keep header)
+  const header = table.querySelector(".invoice-row.header");
+  table.innerHTML = "";
+  table.appendChild(header);
+  
+  // Compute findings to know which rows to highlight
+  const findings = checkInvoice(invoice);
+  const flaggedHigh = new Set(findings.filter(f => f.severity === "high").map(f => f.lineIdx));
+  const flaggedMed = new Set(findings.filter(f => f.severity === "medium" || f.severity === "low").map(f => f.lineIdx));
+  
+  invoice.forEach((line, idx) => {
+    const med = DB[line.cn];
+    const row = document.createElement("div");
+    row.className = "invoice-row";
+    if (flaggedHigh.has(idx)) row.classList.add("flagged");
+    else if (flaggedMed.has(idx)) row.classList.add("flagged", "subtle");
+    
+    row.innerHTML = `
+      <div><input type="text" class="cn" value="${line.cn}" data-idx="${idx}" data-field="cn"></div>
+      <div class="name">
+        ${med ? med.nombre.slice(0, 55) : '<em>CN no encontrado</em>'}
+        ${med ? `<div class="sub">${med.principio_activo || ''} · ${med.laboratorio || ''}</div>` : ''}
+      </div>
+      <div><input type="number" step="1" value="${line.qty}" data-idx="${idx}" data-field="qty"></div>
+      <div><input type="number" step="0.01" value="${line.unit.toFixed(2)}" data-idx="${idx}" data-field="unit"></div>
+      <div><input type="number" step="0.01" value="${line.total.toFixed(2)}" data-idx="${idx}" data-field="total"></div>
+      <div class="row-actions" onclick="removeRow(${idx})" title="Eliminar línea">×</div>
+    `;
+    table.appendChild(row);
+  });
+  
+  // Wire input handlers
+  table.querySelectorAll("input").forEach(inp => {
+    inp.addEventListener("input", e => {
+      const idx = +e.target.dataset.idx;
+      const field = e.target.dataset.field;
+      const val = field === "cn" ? e.target.value.trim() : parseFloat(e.target.value) || 0;
+      invoice[idx][field] = val;
+      renderAll();
+    });
+  });
+  
+  // Subtotal
+  const subtotal = invoice.reduce((s, l) => s + (l.total || 0), 0);
+  document.getElementById("subtotal").textContent = eur(subtotal);
+  document.getElementById("lines-count").textContent = invoice.length;
+}
+
+function renderFindings() {
+  const findings = checkInvoice(invoice);
+  const list = document.getElementById("findings-list");
+  list.innerHTML = "";
+  
+  document.getElementById("findings-count").textContent = 
+    findings.length === 0 ? "Ninguno detectado" : 
+    findings.length === 1 ? "1 detectado" : `${findings.length} detectados`;
+  
+  // Sum positive impacts (overcharges + savings opportunities)
+  const totalImpact = findings.reduce((s, f) => s + Math.max(0, f.impact), 0);
+  document.getElementById("total-impact").textContent = eur(totalImpact);
+  
+  if (findings.length === 0) {
+    list.innerHTML = `<div class="no-findings">No se han detectado anomalías en esta factura.</div>`;
+    return;
+  }
+  
+  // Order: high → medium → low → info
+  const order = { high: 0, medium: 1, low: 2, info: 3 };
+  findings.sort((a, b) => order[a.severity] - order[b.severity]);
+  
+  findings.forEach(f => {
+    const el = document.createElement("div");
+    el.className = `finding ${f.severity}`;
+    const impactClass = f.impact > 0 ? "" : "zero";
+    el.innerHTML = `
+      <div class="finding-head">
+        <div class="finding-title">${f.title}</div>
+        ${f.impact > 0 ? `<div class="finding-impact ${impactClass}">${eur(f.impact)}</div>` : ''}
+      </div>
+      <div class="finding-body">${f.body}</div>
+      ${f.cite ? `<div class="finding-cite">${f.cite}</div>` : ''}
+    `;
+    list.appendChild(el);
+  });
+}
+
+function renderAll() {
+  renderInvoice();
+  renderFindings();
+}
+
+function addRow() {
+  invoice.push({ cn: "", qty: 1, unit: 0, total: 0 });
+  renderAll();
+}
+
+function removeRow(idx) {
+  invoice.splice(idx, 1);
+  renderAll();
+}
+
+// Initial render
+renderAll();
+</script>
+
+</body>
+</html>

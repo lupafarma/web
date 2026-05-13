@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lupa — Auditor de facturas farmacéuticas</title>
+<meta name="description" content="Lupa: auditor de facturas farmacéuticas para farmacias españolas. Procesamiento 100% local en el navegador. Próximamente.">
+<meta name="robots" content="index, follow">
+<meta property="og:title" content="Lupa — Auditor de facturas farmacéuticas">
+<meta property="og:description" content="Auditor de facturas farmacéuticas para farmacias españolas. Procesamiento 100% local. Próximamente.">
+<meta property="og:url" content="https://lupafarma.es">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="es_ES">
+<link rel="canonical" href="https://lupafarma.es">
+<style>
+  :root {
+    --bg: #F5F1E8;
+    --ink: #1A1F2C;
+    --ink-soft: #4A5160;
+    --ink-faint: #8A8F9A;
+    --rule: #D8D2C2;
+    --accent-green: #2F6048;
+    --bg-good: #E2EDE5;
+    --font-serif: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
+    --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; height: 100%; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font-sans);
+    font-size: 16px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+  }
+  main {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 48px 24px;
+  }
+  .card {
+    max-width: 640px;
+    width: 100%;
+  }
+  .wordmark {
+    font-family: var(--font-serif);
+    font-weight: 600;
+    font-style: italic;
+    font-size: 84px;
+    line-height: 1;
+    letter-spacing: -0.02em;
+    margin: 0 0 16px;
+    color: var(--ink);
+  }
+  .tagline {
+    font-family: var(--font-serif);
+    font-size: 22px;
+    color: var(--ink-soft);
+    margin: 0 0 40px;
+    line-height: 1.4;
+    font-style: italic;
+  }
+  .status {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 14px;
+    background: var(--bg-good);
+    border: 1px solid var(--accent-green);
+    border-radius: 2px;
+    font-size: 14px;
+    color: var(--accent-green);
+    font-weight: 500;
+    margin-bottom: 40px;
+  }
+  .status .dot {
+    width: 6px;
+    height: 6px;
+    background: var(--accent-green);
+    border-radius: 50%;
+    display: inline-block;
+    animation: pulse 2s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+  .description {
+    color: var(--ink-soft);
+    margin-bottom: 32px;
+    font-size: 17px;
+  }
+  .description strong { color: var(--ink); font-weight: 500; }
+  .features {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 40px;
+    border-top: 1px solid var(--rule);
+  }
+  .features li {
+    padding: 14px 0;
+    border-bottom: 1px solid var(--rule);
+    color: var(--ink-soft);
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+  }
+  .features li::before {
+    content: "—";
+    color: var(--ink-faint);
+  }
+  footer {
+    border-top: 1px solid var(--rule);
+    padding: 24px;
+    text-align: center;
+    color: var(--ink-faint);
+    font-size: 13px;
+  }
+  footer a {
+    color: var(--ink-soft);
+    text-decoration: underline;
+    text-decoration-color: var(--rule);
+  }
+  footer a:hover { text-decoration-color: var(--ink-soft); }
+  @media (max-width: 600px) {
+    .wordmark { font-size: 64px; }
+    .tagline { font-size: 18px; }
+    .description { font-size: 15px; }
+  }
+</style>
+</head>
+<body>
+
+<main>
+  <div class="card">
+    <h1 class="wordmark">Lupa</h1>
+    <p class="tagline">Auditor de facturas farmacéuticas para farmacias españolas.</p>
+    
+    <div class="status">
+      <span class="dot"></span>
+      <span>En desarrollo · Llegando próximamente</span>
+    </div>
+    
+    <p class="description">
+      Lupa analiza facturas de distribuidores y detecta <strong>sobrecargas sobre el PVL Industrial de Referencia</strong>, 
+      errores aritméticos, y oportunidades de sustitución por genérico, comparando contra el 
+      Nomenclátor de Facturación y la normativa vigente publicada en BOE.
+    </p>
+    
+    <ul class="features">
+      <li>Procesamiento 100% local en tu navegador. Tus facturas nunca salen de tu equipo.</li>
+      <li>Sin registro, sin cuenta, sin telemetría. Verificable con F12.</li>
+      <li>Citación legal explícita para cada hallazgo. RD 177/2014, RD 823/2008, BOE Orden SND/1118/2025.</li>
+      <li>Software libre bajo licencia MIT. Código abierto y auditable.</li>
+    </ul>
+  </div>
+</main>
+
+<footer>
+  Lupafarma · 2026 · <a href="https://github.com/lupafarma">github.com/lupafarma</a>
+</footer>
+
+</body>
+</html>
