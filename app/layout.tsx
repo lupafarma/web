@@ -26,8 +26,22 @@ const plexMono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://lupafarma.es"),
   title: MESSAGES.meta.title,
   description: MESSAGES.meta.description,
+  keywords: ["farmacia", "facturas", "auditor", "PVL", "BOE", "Nomenclátor", "España"],
+  authors: [{ name: "Luis Rodriguez Cruz" }],
+  creator: "Lupafarma",
+  openGraph: {
+    type: "website",
+    locale: "es_ES",
+    url: "https://lupafarma.es",
+    title: MESSAGES.meta.title,
+    description: MESSAGES.meta.description,
+    siteName: "Lupa",
+  },
+  robots: { index: true, follow: true },
+  alternates: { canonical: "https://lupafarma.es" },
 };
 
 export default function RootLayout({

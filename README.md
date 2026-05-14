@@ -92,13 +92,13 @@ El output va a `out/` y es desplegable a cualquier servicio de hosting estático
 
 ## Estado del proyecto
 
-**Versión actual:** v1 (en desarrollo) — https://lupafarma.es
+**Versión actual:** v1 — [lupafarma.es](https://lupafarma.es)
 
 Cobertura de datos en v1:
 - ✅ 20.551 presentaciones del Nomenclátor de Facturación
 - ✅ 74 medicamentos con PVL Referencia validado por BOE
+- ✅ PVL estimado vía fórmula RD 823/2008 para cobertura completa (validado a 0,5–1% del PVL BOE)
 - ⏳ ~14.000 medicamentos restantes pendientes de extracción completa del BOE Orden SND/1118/2025
-- ⏳ PVL estimado vía fórmula RD 823/2008 para cobertura completa (validado a 0,5–1% del PVL BOE)
 
 ---
 
