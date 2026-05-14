@@ -1,4 +1,5 @@
 import type { BodySegment } from "./detection";
+import { toTitleCase } from "./format";
 
 // Header intro is rendered with <strong> emphasis on key BOE/Nomenclátor terms.
 // Keep as a BodySegment[] so the Header component can render React fragments
@@ -11,7 +12,7 @@ const HEADER_INTRO: BodySegment[] = [
   {
     kind: "text",
     value:
-      " publicado en BOE, y los márgenes regulados por RD 823/2008. Detecta sobrecargas ilegales, errores aritméticos, y alternativas genéricas más económicas. Esta es una demostración con datos reales. Modifica cualquier campo para ver el análisis actualizarse.",
+      " publicado en BOE, y los márgenes regulados por RD 823/2008. Detecta sobrecargas ilegales, errores aritméticos, y alternativas genéricas más económicas. Esta es una demostración con datos reales. Modifica cualquier campo y verás el análisis al instante.",
   },
 ];
 
@@ -24,14 +25,14 @@ export const MESSAGES = {
 
   app: {
     loading: "Cargando base de datos…",
-    error: (msg: string) => `Error: ${msg}`,
+    error: (msg: string) => `No se pudo cargar la base de datos: ${msg}`,
     baseInfo: (count: number) =>
       `Base de datos: ${count.toLocaleString("es-ES")} presentaciones cargadas`,
   },
 
   brand: {
     wordmark: "Lupa",
-    tagline: "Auditor de facturas farmacéuticas — España",
+    tagline: "Auditor de facturas farmacéuticas",
   },
 
   header: {
@@ -65,7 +66,7 @@ export const MESSAGES = {
       total: "Total",
     },
     removeRow: "Eliminar línea",
-    cnNotFound: "CN no encontrado",
+    cnNotFound: "CN no reconocido",
     subtotal: "Subtotal:",
     addRow: "+ Añadir línea",
   },
@@ -88,7 +89,7 @@ export const MESSAGES = {
         {
           kind: "text",
           value:
-            " no figura en el Nomenclátor cargado. Verificar manualmente.",
+            " no figura en el Nomenclátor cargado. Verifícalo manualmente.",
         },
       ],
     },
@@ -116,7 +117,7 @@ export const MESSAGES = {
       ],
     },
     pvlViolation: {
-      title: "Sobrecarga sobre PVL Referencia (ilegal)",
+      title: "Cobro superior al PVL de Referencia (ilegal)",
       body: (p: {
         nombre: string;
         unitEur: string;
@@ -158,7 +159,7 @@ export const MESSAGES = {
           value: `: precio ${p.unitEur} supera el PVL estimado ${p.pvlEstEur} (calculado vía márgenes RD 823/2008). Posible sobrecarga: `,
         },
         { kind: "strong", value: p.overTotalEur },
-        { kind: "text", value: ". Verificar contrato comercial." },
+        { kind: "text", value: ". Revisa tu contrato comercial." },
       ],
       cite: "Fuente: RD 823/2008, márgenes regulados",
     },
@@ -179,7 +180,7 @@ export const MESSAGES = {
         { kind: "strong", value: p.savingsEur },
         { kind: "text", value: "." },
       ],
-      cite: (agrupacion: string) => `Agrupación homogénea: ${agrupacion}`,
+      cite: (agrupacion: string) => `Agrupación homogénea: ${toTitleCase(agrupacion)}`,
     },
   },
 
@@ -206,8 +207,8 @@ export const MESSAGES = {
     },
     privacy:
       "Lupa es software libre y auditable. Tus facturas nunca abandonan este navegador.",
-    buildInfo:
-      "Versión de demostración · 20.551 presentaciones cargadas · Lupafarma · 2026 ·",
+    buildInfo: (count: number) =>
+      `Versión de demostración · ${count.toLocaleString("es-ES")} presentaciones cargadas · Lupafarma · 2026 ·`,
     repoLabel: "github.com/lupafarma",
     repoHref: "https://github.com/lupafarma/web",
   },

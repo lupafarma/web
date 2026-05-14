@@ -126,6 +126,7 @@ The derived PVL formula validates to within 0.5–1% of authoritative BOE PVL on
 - **Commit often** with focused commits. Conventional commit format (`feat:`, `fix:`, `chore:`, `docs:`).
 - **No new dependencies without asking.** Justify each one.
 - **No premature abstraction.** This is a simple app. Resist the urge to create a service layer, a state management library, or a custom hook for everything.
+- **Spanish register: use `tú` (informal) consistently across all UI copy.** Modern Spanish web convention. Pharmacists are professionals but `tú` reads contemporary, not stuffy. Avoid `usted` unless quoting legal text (BOE references preserve formal Spanish since they're verbatim).
 
 ---
 

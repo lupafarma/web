@@ -166,7 +166,7 @@ describe("checkInvoice — rule 2 (PVL Referencia violation)", () => {
       db,
     );
     const violations = findings.filter(
-      (f) => f.title === "Sobrecarga sobre PVL Referencia (ilegal)",
+      (f) => f.title === "Cobro superior al PVL de Referencia (ilegal)",
     );
     expect(violations).toHaveLength(1);
     const v: Finding = violations[0];
@@ -189,7 +189,7 @@ describe("checkInvoice — clean line", () => {
     );
     const blocking = findings.filter(
       (f) =>
-        f.title === "Sobrecarga sobre PVL Referencia (ilegal)" ||
+        f.title === "Cobro superior al PVL de Referencia (ilegal)" ||
         f.title === "Sobrecarga sospechosa (PVL estimado)" ||
         f.title === "Error aritmético en línea",
     );
@@ -210,7 +210,7 @@ describe("checkInvoice — rule 4 (cheaper alternative)", () => {
     expect(cheaper[0].severity).toBe("low");
     // 25.00 - 18.00 = 7.00 per unit, qty=1 → savings 7.00
     expect(cheaper[0].impact).toBeCloseTo(7.0, 2);
-    expect(cheaper[0].cite).toBe("Agrupación homogénea: AGOMELATINA 25 MG 28");
+    expect(cheaper[0].cite).toBe("Agrupación homogénea: Agomelatina 25 Mg 28");
   });
 });
 

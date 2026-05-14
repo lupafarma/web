@@ -95,7 +95,7 @@ export default function Home() {
         )}
       </main>
 
-      <Footer />
+      <Footer count={medications?.size ?? 0} />
     </div>
   );
 }

@@ -3,7 +3,9 @@ import { MESSAGES } from "@/lib/messages";
 const LINK_CLASS =
   "text-ink-soft underline decoration-rule hover:decoration-ink-soft";
 
-export function Footer() {
+type FooterProps = { count: number };
+
+export function Footer({ count }: FooterProps) {
   const F = MESSAGES.footer;
   return (
     <footer className="mt-16 pt-6 border-t border-rule text-[12px] text-ink-faint font-mono">
@@ -34,7 +36,7 @@ export function Footer() {
       <div className="mt-4">
         {F.privacy}
         <br />
-        {F.buildInfo}{" "}
+        {F.buildInfo(count)}{" "}
         <a className={LINK_CLASS} href={F.repoHref}>
           {F.repoLabel}
         </a>
