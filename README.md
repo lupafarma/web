@@ -1,5 +1,7 @@
 # Lupa
 
+> 🟢 **En vivo:** [lupafarma.es](https://lupafarma.es) — versión en desarrollo. Página inicial publicada; análisis de facturas en construcción.
+
 > Auditor de facturas farmacéuticas para farmacias españolas. Procesamiento 100% local en el navegador.
 
 [lupafarma.es](https://lupafarma.es) · [Probar Lupa](https://lupafarma.es)
@@ -90,7 +92,7 @@ El output va a `out/` y es desplegable a cualquier servicio de hosting estático
 
 ## Estado del proyecto
 
-**Versión actual:** v1 (en desarrollo)
+**Versión actual:** v1 (en desarrollo) — https://lupafarma.es
 
 Cobertura de datos en v1:
 - ✅ 20.551 presentaciones del Nomenclátor de Facturación
