@@ -89,6 +89,8 @@ export function InvoiceGrid({
 
   return (
     <div>
+      <div className="overflow-x-auto -mx-px">
+        <div className="min-w-[480px]">
       <div className="bg-card border border-rule overflow-hidden">
         <div className={`grid ${COLS} bg-bg border-b border-rule`}>
           <div className={headerCell}>CN</div>
@@ -184,6 +186,8 @@ export function InvoiceGrid({
             Subtotal:
           </span>
           <span className="text-base font-medium text-ink">{eur(subtotal)}</span>
+        </div>
+      </div>
         </div>
       </div>
 
