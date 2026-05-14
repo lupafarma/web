@@ -4,6 +4,7 @@ import { useState } from "react";
 import type { Medication } from "@/lib/medications";
 import type { InvoiceLine } from "@/lib/detection";
 import { eur } from "@/lib/format";
+import { MESSAGES } from "@/lib/messages";
 
 type InvoiceGridProps = {
   lines: InvoiceLine[];
@@ -93,11 +94,11 @@ export function InvoiceGrid({
         <div className="min-w-[480px]">
       <div className="bg-card border border-rule overflow-hidden">
         <div className={`grid ${COLS} bg-bg border-b border-rule`}>
-          <div className={headerCell}>CN</div>
-          <div className={headerCell}>Producto</div>
-          <div className={`${headerCell} text-right`}>Cant.</div>
-          <div className={`${headerCell} text-right`}>P. unit.</div>
-          <div className={`${headerCell} text-right`}>Total</div>
+          <div className={headerCell}>{MESSAGES.invoiceGrid.headers.cn}</div>
+          <div className={headerCell}>{MESSAGES.invoiceGrid.headers.producto}</div>
+          <div className={`${headerCell} text-right`}>{MESSAGES.invoiceGrid.headers.cantidad}</div>
+          <div className={`${headerCell} text-right`}>{MESSAGES.invoiceGrid.headers.unitario}</div>
+          <div className={`${headerCell} text-right`}>{MESSAGES.invoiceGrid.headers.total}</div>
           <div></div>
         </div>
 
@@ -133,7 +134,7 @@ export function InvoiceGrid({
                     </div>
                   </>
                 ) : (
-                  <em className="text-ink-faint">CN no encontrado</em>
+                  <em className="text-ink-faint">{MESSAGES.invoiceGrid.cnNotFound}</em>
                 )}
               </div>
               <div className="px-2 py-2.5">
@@ -168,8 +169,8 @@ export function InvoiceGrid({
               </div>
               <button
                 type="button"
-                aria-label="Eliminar línea"
-                title="Eliminar línea"
+                aria-label={MESSAGES.invoiceGrid.removeRow}
+                title={MESSAGES.invoiceGrid.removeRow}
                 onClick={() => removeRow(idx)}
                 className="text-center text-ink-faint cursor-pointer select-none text-base hover:text-accent-red bg-transparent border-0 leading-none"
               >
@@ -183,7 +184,7 @@ export function InvoiceGrid({
       <div className="bg-bg border border-rule border-t-0 px-4 py-3 flex justify-end gap-8 items-baseline font-mono">
         <div>
           <span className="text-[12px] uppercase tracking-wider text-ink-faint mr-2">
-            Subtotal:
+            {MESSAGES.invoiceGrid.subtotal}
           </span>
           <span className="text-base font-medium text-ink">{eur(subtotal)}</span>
         </div>
@@ -196,7 +197,7 @@ export function InvoiceGrid({
         onClick={addRow}
         className="mt-3 w-full border border-dashed border-rule text-ink-soft py-3 text-[13px] hover:border-ink-soft hover:text-ink transition-colors bg-transparent"
       >
-        + Añadir línea
+        {MESSAGES.invoiceGrid.addRow}
       </button>
     </div>
   );

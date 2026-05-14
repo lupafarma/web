@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Fraunces, IBM_Plex_Sans, IBM_Plex_Mono } from "next/font/google";
+import { MESSAGES } from "@/lib/messages";
 import "./globals.css";
 
 const fraunces = Fraunces({
@@ -25,9 +26,8 @@ const plexMono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Lupa — Auditor de facturas farmacéuticas",
-  description:
-    "Auditor de facturas farmacéuticas para farmacias españolas con procesamiento 100% local en el navegador.",
+  title: MESSAGES.meta.title,
+  description: MESSAGES.meta.description,
 };
 
 export default function RootLayout({

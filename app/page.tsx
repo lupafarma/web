@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { loadMedications } from "@/lib/medications";
 import type { Medication } from "@/lib/medications";
 import { checkInvoice, type InvoiceLine } from "@/lib/detection";
+import { MESSAGES } from "@/lib/messages";
 import { InvoiceGrid } from "@/components/InvoiceGrid";
 import { FindingsPanel } from "@/components/FindingsPanel";
 import { Header } from "@/components/Header";
@@ -66,16 +67,19 @@ export default function Home() {
 
       <main>
         {error && (
-          <p className="text-sm text-accent-red">Error: {error}</p>
+          <p className="text-sm text-accent-red">{MESSAGES.app.error(error)}</p>
         )}
         {!error && !medications && (
-          <p className="text-sm text-ink-soft">Cargando base de datos…</p>
+          <p className="text-sm text-ink-soft">{MESSAGES.app.loading}</p>
         )}
 
         {medications && (
           <div className="grid grid-cols-1 lg:grid-cols-[1.1fr_0.9fr] gap-8 lg:gap-10">
             <section>
-              <PanelHead title="Factura" meta="DEMO · Cofares simulado" />
+              <PanelHead
+                title={MESSAGES.panels.factura.title}
+                meta={MESSAGES.panels.factura.meta}
+              />
               <InvoiceGrid
                 lines={lines}
                 medications={medications}

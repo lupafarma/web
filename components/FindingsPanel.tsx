@@ -1,5 +1,6 @@
 import type { Finding, Severity } from "@/lib/detection";
 import { eur } from "@/lib/format";
+import { MESSAGES } from "@/lib/messages";
 import { PanelHead } from "./PanelHead";
 
 type FindingsPanelProps = {
@@ -31,21 +32,16 @@ export function FindingsPanel({ findings, linesCount }: FindingsPanelProps) {
     (a, b) => SEVERITY_ORDER[a.severity] - SEVERITY_ORDER[b.severity],
   );
 
-  const countText =
-    findings.length === 0
-      ? "Ninguno detectado"
-      : findings.length === 1
-        ? "1 detectado"
-        : `${findings.length} detectados`;
+  const countText = MESSAGES.panels.hallazgos.count(findings.length);
 
   return (
     <section>
-      <PanelHead title="Hallazgos" meta={countText} />
+      <PanelHead title={MESSAGES.panels.hallazgos.title} meta={countText} />
 
       <div className="bg-card border border-rule p-4 mb-5 grid grid-cols-2 gap-4">
         <div>
           <div className="text-[11px] uppercase tracking-wider text-ink-faint mb-1">
-            Líneas analizadas
+            {MESSAGES.findings.linesAnalyzed}
           </div>
           <div className="font-serif font-medium text-[32px] leading-none text-ink">
             {linesCount}
@@ -53,7 +49,7 @@ export function FindingsPanel({ findings, linesCount }: FindingsPanelProps) {
         </div>
         <div>
           <div className="text-[11px] uppercase tracking-wider text-ink-faint mb-1">
-            Impacto potencial
+            {MESSAGES.findings.totalImpact}
           </div>
           <div className="font-serif font-medium text-[32px] leading-none text-accent-red">
             {eur(totalImpact)}
@@ -63,7 +59,7 @@ export function FindingsPanel({ findings, linesCount }: FindingsPanelProps) {
 
       {findings.length === 0 ? (
         <div className="border border-accent-green bg-good text-accent-green text-center py-6 px-4 italic text-[18px] font-serif">
-          No se han detectado anomalías en esta factura.
+          {MESSAGES.findings.empty}
         </div>
       ) : (
         <div className="flex flex-col gap-3">

@@ -1,5 +1,6 @@
 import type { Medication } from "./medications";
 import { eur } from "./format";
+import { MESSAGES } from "./messages";
 
 export type Severity = "high" | "medium" | "low" | "info";
 
@@ -67,6 +68,7 @@ export function checkInvoice(
   lines: InvoiceLine[],
   db: Map<string, Medication>,
 ): Finding[] {
+  const M = MESSAGES.detection;
   const findings: Finding[] = [];
 
   lines.forEach((line, idx) => {
@@ -77,24 +79,17 @@ export function checkInvoice(
     if (!med) {
       findings.push({
         severity: "info",
-        title: "CN no reconocido",
+        title: M.unknownCn.title,
         lineRef,
         lineIdx: idx,
-        body: [
-          { kind: "text", value: "El código nacional " },
-          { kind: "strong", value: line.cn },
-          {
-            kind: "text",
-            value: " no figura en el Nomenclátor cargado. Verificar manualmente.",
-          },
-        ],
+        body: M.unknownCn.body(line.cn),
         impact: 0,
         cite: "",
       });
       return;
     }
 
-    const nombre = med.nombre || "?";
+    const nombre = (med.nombre || "?").slice(0, 50);
 
     // CHECK 1: Math error on line
     const expected = Math.round(line.qty * line.unit * 100) / 100;
@@ -102,21 +97,18 @@ export function checkInvoice(
       const diff = line.total - expected;
       findings.push({
         severity: "high",
-        title: "Error aritmético en línea",
+        title: M.mathError.title,
         lineRef,
         lineIdx: idx,
-        body: [
-          { kind: "strong", value: nombre.slice(0, 50) },
-          {
-            kind: "text",
-            value: `: ${line.qty} × ${eur(line.unit)} = ${eur(expected)}, pero la factura indica ${eur(line.total)}. Diferencia: `,
-          },
-          { kind: "strong", value: eur(diff) },
-          {
-            kind: "text",
-            value: ` ${diff > 0 ? "a favor del distribuidor" : "a tu favor"}.`,
-          },
-        ],
+        body: M.mathError.body({
+          nombre,
+          qty: line.qty,
+          unitEur: eur(line.unit),
+          expectedEur: eur(expected),
+          totalEur: eur(line.total),
+          diffEur: eur(diff),
+          diffPositive: diff > 0,
+        }),
         impact: diff,
         cite: "",
       });
@@ -129,29 +121,19 @@ export function checkInvoice(
       const overTotal = overUnit * line.qty;
       findings.push({
         severity: "high",
-        title: "Sobrecarga sobre PVL Referencia (ilegal)",
+        title: M.pvlViolation.title,
         lineRef,
         lineIdx: idx,
-        body: [
-          { kind: "strong", value: nombre.slice(0, 50) },
-          {
-            kind: "text",
-            value: `: precio facturado ${eur(line.unit)} supera el PVL Industrial de Referencia `,
-          },
-          { kind: "strong", value: eur(pvlRef) },
-          {
-            kind: "text",
-            value: `. Sobrecarga: ${eur(overUnit)}/u × ${line.qty} = `,
-          },
-          { kind: "strong", value: eur(overTotal) },
-          {
-            kind: "text",
-            value:
-              ". El PVL Referencia tiene carácter de máximo según el Art. 2.2 del RD 177/2014.",
-          },
-        ],
+        body: M.pvlViolation.body({
+          nombre,
+          unitEur: eur(line.unit),
+          pvlRefEur: eur(pvlRef),
+          overUnitEur: eur(overUnit),
+          qty: line.qty,
+          overTotalEur: eur(overTotal),
+        }),
         impact: overTotal,
-        cite: "Fuente: BOE-A-2025-20356, Art. 2.2 RD 177/2014",
+        cite: M.pvlViolation.cite,
       });
     }
 
@@ -163,20 +145,17 @@ export function checkInvoice(
         const overTotal = overUnit * line.qty;
         findings.push({
           severity: "medium",
-          title: "Sobrecarga sospechosa (PVL estimado)",
+          title: M.pvlEstimated.title,
           lineRef,
           lineIdx: idx,
-          body: [
-            { kind: "strong", value: nombre.slice(0, 50) },
-            {
-              kind: "text",
-              value: `: precio ${eur(line.unit)} supera el PVL estimado ${eur(pvlEst)} (calculado vía márgenes RD 823/2008). Posible sobrecarga: `,
-            },
-            { kind: "strong", value: eur(overTotal) },
-            { kind: "text", value: ". Verificar contrato comercial." },
-          ],
+          body: M.pvlEstimated.body({
+            nombre,
+            unitEur: eur(line.unit),
+            pvlEstEur: eur(pvlEst),
+            overTotalEur: eur(overTotal),
+          }),
           impact: overTotal,
-          cite: "Fuente: RD 823/2008, márgenes regulados",
+          cite: M.pvlEstimated.cite,
         });
       }
     }
@@ -194,20 +173,20 @@ export function checkInvoice(
         if (savingsTotal > 0.5) {
           findings.push({
             severity: "low",
-            title: "Oportunidad: genérico equivalente más económico",
+            title: M.cheaperAlt.title,
             lineRef,
             lineIdx: idx,
-            body: [
-              { kind: "strong", value: nombre.slice(0, 50) },
-              {
-                kind: "text",
-                value: `: existe ${cheaper.nombre.slice(0, 45)} (${cheaper.laboratorio ?? "?"}) a ${eur(cheaper.pvp_iva)} en la misma agrupación homogénea. Ahorro potencial: `,
-              },
-              { kind: "strong", value: eur(savingsTotal) },
-              { kind: "text", value: "." },
-            ],
+            body: M.cheaperAlt.body({
+              nombre,
+              altNombre: cheaper.nombre.slice(0, 45),
+              altLab: cheaper.laboratorio ?? "?",
+              altEur: eur(cheaper.pvp_iva),
+              savingsEur: eur(savingsTotal),
+            }),
             impact: savingsTotal,
-            cite: `Agrupación homogénea: ${med.agrupacion_nombre ?? med.agrupacion_code}`,
+            cite: M.cheaperAlt.cite(
+              med.agrupacion_nombre ?? med.agrupacion_code ?? "",
+            ),
           });
         }
       }
