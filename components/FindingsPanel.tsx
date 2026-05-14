@@ -1,5 +1,6 @@
 import type { Finding, Severity } from "@/lib/detection";
 import { eur } from "@/lib/format";
+import { PanelHead } from "./PanelHead";
 
 type FindingsPanelProps = {
   findings: Finding[];
@@ -39,19 +40,14 @@ export function FindingsPanel({ findings, linesCount }: FindingsPanelProps) {
 
   return (
     <section>
-      <div className="flex items-baseline justify-between border-b-2 border-ink pb-2 mb-4">
-        <h2 className="font-medium text-[22px] tracking-tight m-0">Hallazgos</h2>
-        <span className="font-mono text-[12px] text-ink-faint uppercase tracking-wider">
-          {countText}
-        </span>
-      </div>
+      <PanelHead title="Hallazgos" meta={countText} />
 
       <div className="bg-card border border-rule p-4 mb-5 grid grid-cols-2 gap-4">
         <div>
           <div className="text-[11px] uppercase tracking-wider text-ink-faint mb-1">
             Líneas analizadas
           </div>
-          <div className="font-medium text-[32px] leading-none text-ink">
+          <div className="font-serif font-medium text-[32px] leading-none text-ink">
             {linesCount}
           </div>
         </div>
@@ -59,14 +55,14 @@ export function FindingsPanel({ findings, linesCount }: FindingsPanelProps) {
           <div className="text-[11px] uppercase tracking-wider text-ink-faint mb-1">
             Impacto potencial
           </div>
-          <div className="font-medium text-[32px] leading-none text-accent-red">
+          <div className="font-serif font-medium text-[32px] leading-none text-accent-red">
             {eur(totalImpact)}
           </div>
         </div>
       </div>
 
       {findings.length === 0 ? (
-        <div className="border border-accent-green bg-good text-accent-green text-center py-6 px-4 italic text-[18px]">
+        <div className="border border-accent-green bg-good text-accent-green text-center py-6 px-4 italic text-[18px] font-serif">
           No se han detectado anomalías en esta factura.
         </div>
       ) : (
@@ -77,7 +73,7 @@ export function FindingsPanel({ findings, linesCount }: FindingsPanelProps) {
               className={`${SEVERITY_CARD[f.severity]} border-l-[3px] py-3.5 px-4`}
             >
               <div className="flex items-baseline justify-between mb-1.5 gap-3">
-                <div className="font-semibold text-[15px] text-ink">
+                <div className="font-serif font-semibold text-[15px] text-ink">
                   {f.title}
                 </div>
                 {f.impact > 0 && (

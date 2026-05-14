@@ -15,6 +15,10 @@
   --color-warn: #f8e8e0;
   --color-info: #f0e8d8;
   --color-good: #e2ede5;
+
+  --font-serif: var(--font-fraunces);
+  --font-sans: var(--font-plex-sans);
+  --font-mono: var(--font-plex-mono);
 }
 
 html,

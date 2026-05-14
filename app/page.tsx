@@ -6,6 +6,9 @@ import type { Medication } from "@/lib/medications";
 import { checkInvoice, type InvoiceLine } from "@/lib/detection";
 import { InvoiceGrid } from "@/components/InvoiceGrid";
 import { FindingsPanel } from "@/components/FindingsPanel";
+import { Header } from "@/components/Header";
+import { Footer } from "@/components/Footer";
+import { PanelHead } from "@/components/PanelHead";
 
 const SAMPLE_LINES: InvoiceLine[] = [
   { cn: "650005", qty: 2, unit: 8.5, total: 17.0 },
@@ -58,36 +61,37 @@ export default function Home() {
   );
 
   return (
-    <main className="max-w-[1200px] mx-auto px-6 py-8 pb-20 w-full">
-      <h1 className="font-medium text-3xl tracking-tight">
-        Lupa — en desarrollo
-      </h1>
+    <div className="max-w-[1200px] mx-auto w-full px-6 pt-8 pb-20">
+      <Header />
 
-      {error && (
-        <p className="mt-2 text-sm text-accent-red">Error: {error}</p>
-      )}
-      {!error && !medications && (
-        <p className="mt-2 text-sm text-ink-soft">Cargando base de datos…</p>
-      )}
+      <main>
+        {error && (
+          <p className="text-sm text-accent-red">Error: {error}</p>
+        )}
+        {!error && !medications && (
+          <p className="text-sm text-ink-soft">Cargando base de datos…</p>
+        )}
 
-      {medications && (
-        <>
-          <div className="mt-8 grid grid-cols-1 lg:grid-cols-[1.1fr_0.9fr] gap-8 lg:gap-10">
-            <InvoiceGrid
-              lines={lines}
-              medications={medications}
-              onChange={setLines}
-              flaggedHigh={flaggedHigh}
-              flaggedMedium={flaggedMedium}
-            />
-            <FindingsPanel findings={findings} linesCount={lines.length} />
+        {medications && (
+          <div className="grid grid-cols-1 lg:grid-cols-[1.1fr_0.9fr] gap-8 lg:gap-10">
+            <section>
+              <PanelHead title="Factura" meta="DEMO · Cofares simulado" />
+              <InvoiceGrid
+                lines={lines}
+                medications={medications}
+                onChange={setLines}
+                flaggedHigh={flaggedHigh}
+                flaggedMedium={flaggedMedium}
+              />
+            </section>
+            <section>
+              <FindingsPanel findings={findings} linesCount={lines.length} />
+            </section>
           </div>
-          <p className="mt-12 text-[11px] text-ink-faint font-mono uppercase tracking-wider">
-            Base de datos: {medications.size.toLocaleString("es-ES")}{" "}
-            presentaciones cargadas
-          </p>
-        </>
-      )}
-    </main>
+        )}
+      </main>
+
+      <Footer />
+    </div>
   );
 }
