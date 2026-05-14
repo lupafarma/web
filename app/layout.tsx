@@ -39,6 +39,14 @@ export const metadata: Metadata = {
     title: MESSAGES.meta.title,
     description: MESSAGES.meta.description,
     siteName: "Lupa",
+    images: [
+      {
+        url: "/opengraph-image.png",
+        width: 1200,
+        height: 630,
+        alt: "Lupa — Auditor de facturas farmacéuticas",
+      },
+    ],
   },
   robots: { index: true, follow: true },
   alternates: { canonical: "https://lupafarma.es" },

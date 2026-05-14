@@ -118,6 +118,7 @@ export function InvoiceGrid({
                 <input
                   type="text"
                   inputMode="numeric"
+                  aria-label={MESSAGES.invoiceGrid.headers.cn}
                   value={line.cn}
                   onChange={(e) => onCnChange(idx, e.target.value)}
                   className={`${cellInput} text-left font-medium`}
@@ -141,6 +142,7 @@ export function InvoiceGrid({
                 <input
                   type="text"
                   inputMode="numeric"
+                  aria-label={MESSAGES.invoiceGrid.headers.cantidad}
                   value={display(idx, "qty", line.qty)}
                   onChange={(e) => onNumChange(idx, "qty", e.target.value)}
                   onBlur={() => onNumBlur(idx, "qty")}
@@ -151,6 +153,7 @@ export function InvoiceGrid({
                 <input
                   type="text"
                   inputMode="decimal"
+                  aria-label={MESSAGES.invoiceGrid.headers.unitario}
                   value={display(idx, "unit", line.unit)}
                   onChange={(e) => onNumChange(idx, "unit", e.target.value)}
                   onBlur={() => onNumBlur(idx, "unit")}
@@ -161,6 +164,7 @@ export function InvoiceGrid({
                 <input
                   type="text"
                   inputMode="decimal"
+                  aria-label={MESSAGES.invoiceGrid.headers.total}
                   value={display(idx, "total", line.total)}
                   onChange={(e) => onNumChange(idx, "total", e.target.value)}
                   onBlur={() => onNumBlur(idx, "total")}
