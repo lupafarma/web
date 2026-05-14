@@ -9,6 +9,8 @@ type InvoiceGridProps = {
   lines: InvoiceLine[];
   medications: Map<string, Medication>;
   onChange: (lines: InvoiceLine[]) => void;
+  flaggedHigh?: Set<number>;
+  flaggedMedium?: Set<number>;
 };
 
 type NumField = "qty" | "unit" | "total";
@@ -24,6 +26,8 @@ export function InvoiceGrid({
   lines,
   medications,
   onChange,
+  flaggedHigh,
+  flaggedMedium,
 }: InvoiceGridProps) {
   // Per-cell edit buffer: holds raw input strings during editing so the
   // user keeps their literal keystrokes (incl. trailing zeros, "1,5" vs "1.5")
@@ -97,10 +101,15 @@ export function InvoiceGrid({
 
         {lines.map((line, idx) => {
           const med = medications.get(line.cn);
+          const rowBg = flaggedHigh?.has(idx)
+            ? "bg-warn"
+            : flaggedMedium?.has(idx)
+              ? "bg-info"
+              : "";
           return (
             <div
               key={idx}
-              className={`grid ${COLS} items-center border-b border-rule-soft last:border-b-0`}
+              className={`grid ${COLS} items-center border-b border-rule-soft last:border-b-0 ${rowBg}`}
             >
               <div className="px-2 py-2.5">
                 <input

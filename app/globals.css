@@ -10,9 +10,11 @@
   --color-rule-soft: #e8e3d4;
   --color-accent-red: #a03b1f;
   --color-accent-amber: #b07410;
+  --color-accent-green: #2f6048;
   --color-accent-blue: #2a4b6f;
   --color-warn: #f8e8e0;
   --color-info: #f0e8d8;
+  --color-good: #e2ede5;
 }
 
 html,

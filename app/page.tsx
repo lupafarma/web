@@ -1,9 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { loadMedications, type Medication } from "@/lib/medications";
-import type { InvoiceLine } from "@/lib/detection";
+import { useEffect, useMemo, useState } from "react";
+import { loadMedications } from "@/lib/medications";
+import type { Medication } from "@/lib/medications";
+import { checkInvoice, type InvoiceLine } from "@/lib/detection";
 import { InvoiceGrid } from "@/components/InvoiceGrid";
+import { FindingsPanel } from "@/components/FindingsPanel";
 
 const SAMPLE_LINES: InvoiceLine[] = [
   { cn: "650005", qty: 2, unit: 8.5, total: 17.0 },
@@ -32,6 +34,29 @@ export default function Home() {
       );
   }, []);
 
+  const findings = useMemo(
+    () => (medications ? checkInvoice(lines, medications) : []),
+    [lines, medications],
+  );
+
+  const flaggedHigh = useMemo(
+    () =>
+      new Set(
+        findings.filter((f) => f.severity === "high").map((f) => f.lineIdx),
+      ),
+    [findings],
+  );
+
+  const flaggedMedium = useMemo(
+    () =>
+      new Set(
+        findings
+          .filter((f) => f.severity === "medium" || f.severity === "low")
+          .map((f) => f.lineIdx),
+      ),
+    [findings],
+  );
+
   return (
     <main className="max-w-[1200px] mx-auto px-6 py-8 pb-20 w-full">
       <h1 className="font-medium text-3xl tracking-tight">
@@ -47,12 +72,15 @@ export default function Home() {
 
       {medications && (
         <>
-          <div className="mt-8">
+          <div className="mt-8 grid grid-cols-1 lg:grid-cols-[1.1fr_0.9fr] gap-8 lg:gap-10">
             <InvoiceGrid
               lines={lines}
               medications={medications}
               onChange={setLines}
+              flaggedHigh={flaggedHigh}
+              flaggedMedium={flaggedMedium}
             />
+            <FindingsPanel findings={findings} linesCount={lines.length} />
           </div>
           <p className="mt-12 text-[11px] text-ink-faint font-mono uppercase tracking-wider">
             Base de datos: {medications.size.toLocaleString("es-ES")}{" "}
