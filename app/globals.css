@@ -1,5 +1,20 @@
 @import "tailwindcss";
 
+@theme inline {
+  --color-bg: #f5f1e8;
+  --color-card: #fffef8;
+  --color-ink: #1a1f2c;
+  --color-ink-soft: #4a5160;
+  --color-ink-faint: #8a8f9a;
+  --color-rule: #d8d2c2;
+  --color-rule-soft: #e8e3d4;
+  --color-accent-red: #a03b1f;
+  --color-accent-amber: #b07410;
+  --color-accent-blue: #2a4b6f;
+  --color-warn: #f8e8e0;
+  --color-info: #f0e8d8;
+}
+
 html,
 body {
   margin: 0;

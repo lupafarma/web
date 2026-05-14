@@ -1,4 +1,5 @@
 import type { Medication } from "./medications";
+import { eur } from "./format";
 
 export type Severity = "high" | "medium" | "low" | "info";
 
@@ -56,17 +57,6 @@ export function findCheaperAlternative(
     return cheapest;
   }
   return null;
-}
-
-function eur(n: number | null | undefined): string {
-  if (n == null || isNaN(n)) return "—";
-  return (
-    "€" +
-    Number(n)
-      .toFixed(2)
-      .replace(".", ",")
-      .replace(/\B(?=(\d{3})+(?!\d))/g, ".")
-  );
 }
 
 // Implements the four rules from reference/lupa_demo.html. Rule 5 from
