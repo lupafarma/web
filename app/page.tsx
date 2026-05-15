@@ -5,22 +5,12 @@ import { loadMedications } from "@/lib/medications";
 import type { Medication } from "@/lib/medications";
 import { checkInvoice, type InvoiceLine } from "@/lib/detection";
 import { MESSAGES } from "@/lib/messages";
+import { SAMPLE_LINES } from "@/lib/sample";
 import { InvoiceGrid } from "@/components/InvoiceGrid";
 import { FindingsPanel } from "@/components/FindingsPanel";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { PanelHead } from "@/components/PanelHead";
-
-const SAMPLE_LINES: InvoiceLine[] = [
-  { cn: "650005", qty: 2, unit: 8.5, total: 17.0 },
-  { cn: "651068", qty: 5, unit: 2.31, total: 11.55 },
-  { cn: "650789", qty: 3, unit: 1.6, total: 4.8 },
-  { cn: "650228", qty: 2, unit: 34.0, total: 72.0 },
-  { cn: "662020", qty: 1, unit: 19.64, total: 19.64 },
-  { cn: "651619", qty: 4, unit: 3.5, total: 14.0 },
-  { cn: "667451", qty: 2, unit: 9.22, total: 18.44 },
-  { cn: "651076", qty: 3, unit: 4.61, total: 13.83 },
-];
 
 export default function Home() {
   const [medications, setMedications] = useState<Map<
@@ -84,6 +74,12 @@ export default function Home() {
                 lines={lines}
                 medications={medications}
                 onChange={setLines}
+                onClearAll={() => {
+                  if (window.confirm(MESSAGES.invoiceGrid.clearAllConfirm)) {
+                    setLines([]);
+                  }
+                }}
+                onLoadSample={() => setLines(SAMPLE_LINES)}
                 flaggedHigh={flaggedHigh}
                 flaggedMedium={flaggedMedium}
               />

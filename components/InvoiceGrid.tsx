@@ -10,6 +10,8 @@ type InvoiceGridProps = {
   lines: InvoiceLine[];
   medications: Map<string, Medication>;
   onChange: (lines: InvoiceLine[]) => void;
+  onClearAll: () => void;
+  onLoadSample: () => void;
   flaggedHigh?: Set<number>;
   flaggedMedium?: Set<number>;
 };
@@ -27,6 +29,8 @@ export function InvoiceGrid({
   lines,
   medications,
   onChange,
+  onClearAll,
+  onLoadSample,
   flaggedHigh,
   flaggedMedium,
 }: InvoiceGridProps) {
@@ -185,24 +189,42 @@ export function InvoiceGrid({
         })}
       </div>
 
-      <div className="bg-bg border border-rule border-t-0 px-4 py-3 flex justify-end gap-8 items-baseline font-mono">
-        <div>
-          <span className="text-[12px] uppercase tracking-wider text-ink-faint mr-2">
-            {MESSAGES.invoiceGrid.subtotal}
-          </span>
-          <span className="text-base font-medium text-ink">{eur(subtotal)}</span>
+      {lines.length > 0 && (
+        <div className="bg-bg border border-rule border-t-0 px-4 py-3 flex justify-end gap-8 items-baseline font-mono">
+          <div>
+            <span className="text-[12px] uppercase tracking-wider text-ink-faint mr-2">
+              {MESSAGES.invoiceGrid.subtotal}
+            </span>
+            <span className="text-base font-medium text-ink">{eur(subtotal)}</span>
+          </div>
         </div>
-      </div>
+      )}
         </div>
       </div>
 
-      <button
-        type="button"
-        onClick={addRow}
-        className="mt-3 w-full border border-dashed border-rule text-ink-soft py-3 text-[13px] hover:border-ink-soft hover:text-ink transition-colors bg-transparent"
-      >
-        {MESSAGES.invoiceGrid.addRow}
-      </button>
+      <div className="mt-3 flex gap-3">
+        <button
+          type="button"
+          onClick={addRow}
+          className="flex-1 border border-dashed border-rule text-ink-soft py-3 text-[13px] hover:border-ink-soft hover:text-ink transition-colors bg-transparent"
+        >
+          {MESSAGES.invoiceGrid.addRow}
+        </button>
+        <button
+          type="button"
+          onClick={lines.length === 0 ? onLoadSample : onClearAll}
+          aria-label={
+            lines.length === 0
+              ? MESSAGES.invoiceGrid.loadSample
+              : MESSAGES.invoiceGrid.clearAll
+          }
+          className="px-4 py-3 text-[13px] text-ink-soft border border-rule hover:border-ink-soft hover:text-ink transition-colors bg-transparent"
+        >
+          {lines.length === 0
+            ? MESSAGES.invoiceGrid.loadSample
+            : MESSAGES.invoiceGrid.clearAll}
+        </button>
+      </div>
     </div>
   );
 }

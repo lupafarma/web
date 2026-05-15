@@ -69,6 +69,9 @@ export const MESSAGES = {
     cnNotFound: "CN no reconocido",
     subtotal: "Subtotal:",
     addRow: "+ Añadir línea",
+    clearAll: "Vaciar",
+    clearAllConfirm: "¿Vaciar la factura? Se borrarán todas las líneas.",
+    loadSample: "Cargar ejemplo",
   },
 
   findings: {
