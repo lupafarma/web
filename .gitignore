@@ -55,12 +55,19 @@ __pycache__/
 .venv/
 venv/
 
-# Data files (large, not committed)
-# Note: lupa_medication_db.json IS committed because it's the runtime data.
-# Source CSVs are NOT committed (regenerate from data/build_lupa_db.py).
+# Data files
+# Runtime DB lives at public/medications.json (committed).
+# data/lupa_medication_db.json is a build artifact (identical content), skip.
+# BOE PDFs are large source documents — re-download from BOE permalinks
+#   https://www.boe.es/diario_boe/txt.php?id=BOE-A-2025-20356
+#   https://www.boe.es/diario_boe/txt.php?id=BOE-A-2025-21925
+# Parsed CSVs (boe_anexo_1_full.csv, boe_errata.csv, boe_errata_raw.txt)
+# ARE committed — they are the canonical extracted form, useful in diffs.
 data/nomenclator.csv
 data/nomenclator-*.csv
 data/boe-*.pdf
+data/lupa_medication_db.json
+data/boe_raw_sample.txt
 
 # OS
 .DS_Store?
